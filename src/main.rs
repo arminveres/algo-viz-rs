@@ -3,48 +3,67 @@ mod sorting;
 use ggez::{
     event,
     glam::*,
-    graphics::{self, Color, Rect},
+    graphics::{self, Color},
     Context, GameResult,
 };
 
+const RESOLUTION: (f32, f32) = (400.0, 400.0);
+const NO_RECTS: usize = 150;
+
 /// Keeps track of current variables and states
-struct MainState {
-    pos_x: f32,
+struct GameState {
     frames: usize,
-    object: graphics::Mesh,
+    objects: Vec<graphics::Mesh>,
+    rectangles: [graphics::Rect; NO_RECTS],
 }
 
-impl MainState {
-    fn new(ctx: &mut Context) -> GameResult<MainState> {
-        let rect = Rect {
-            x: 0.,
-            y: 0.,
-            h: 200.,
-            w: 50.,
-        };
-        let rectangle =
-            graphics::Mesh::new_rectangle(ctx, graphics::DrawMode::fill(), rect, Color::WHITE)?;
+impl GameState {
+    fn new(ctx: &mut Context) -> GameResult<GameState> {
+        const SCALE: f32 = 0.75;
+        let mut l_rectangles: [graphics::Rect; NO_RECTS] = [graphics::Rect::default(); NO_RECTS];
 
-        Ok(MainState {
-            pos_x: 10.0,
+        for i in 0..l_rectangles.len() {
+            l_rectangles[i].w = 10.;
+            l_rectangles[i].h = 250.;
+            l_rectangles[i].x += i as f32 * l_rectangles[i].w * SCALE;
+            // println!("{}, {}", l_rectangles[i].x, i);
+        }
+
+        let mut l_objects = vec![];
+
+        for i in 0..NO_RECTS {
+            l_objects.push(graphics::Mesh::new_rectangle(
+                ctx,
+                graphics::DrawMode::fill(),
+                l_rectangles[i],
+                Color::WHITE,
+            )?);
+        }
+
+        Ok(GameState {
             frames: 0,
-            object: rectangle,
+            objects: l_objects,
+            rectangles: l_rectangles,
         })
     }
 }
 
-impl event::EventHandler<ggez::GameError> for MainState {
+impl event::EventHandler<ggez::GameError> for GameState {
     fn update(&mut self, _ctx: &mut Context) -> GameResult {
-        // self.pos_x = self.pos_x % 800.0 + 1.0;
-        self.pos_x = self.pos_x % 3440. + 10.0;
+        // TODO: implement update logic
         Ok(())
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
+        // NOTE: Drawing starts from top left!
+
         let mut canvas = graphics::Canvas::from_frame(ctx, graphics::Color::BLACK);
 
-        // NOTE: Drawing starts from top left!
-        canvas.draw(&self.object, Vec2::new(self.pos_x, 1440.0 - 200.));
+        let mut i = 0;
+        for obj in &self.objects {
+            canvas.draw(obj, Vec2::new(self.rectangles[i].x, RESOLUTION.1));
+            i += 1;
+        }
 
         canvas.finish(ctx)?;
 
@@ -58,9 +77,9 @@ impl event::EventHandler<ggez::GameError> for MainState {
 }
 
 pub fn main() -> GameResult {
-    let (mut ctx, event_loop) = ggez::ContextBuilder::new("algo-viz-rs", "Armin Veres").build()?;
+    let (mut ctx, event_loop) = ggez::ContextBuilder::new("algo-vis-rs", "Armin Veres").build()?;
 
-    let state = MainState::new(&mut ctx)?;
+    let state = GameState::new(&mut ctx)?;
 
     event::run(ctx, event_loop, state)
 }
