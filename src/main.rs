@@ -7,6 +7,8 @@ use ggez::{
     Context, GameResult,
 };
 
+use rand::{self, Rng};
+
 const RESOLUTION: (f32, f32) = (400.0, 400.0);
 const NO_RECTS: usize = 150;
 
@@ -19,13 +21,16 @@ struct GameState {
 
 impl GameState {
     fn new(ctx: &mut Context) -> GameResult<GameState> {
+        // TODO: (aver) implement scaling for window and ajdust for rendering
         const SCALE: f32 = 0.75;
+        let mut rng = rand::thread_rng();
         let mut l_rectangles: [graphics::Rect; NO_RECTS] = [graphics::Rect::default(); NO_RECTS];
 
         for i in 0..l_rectangles.len() {
             l_rectangles[i].w = 10.;
-            l_rectangles[i].h = 250.;
-            l_rectangles[i].x += i as f32 * l_rectangles[i].w * SCALE;
+            l_rectangles[i].h = -rng.gen_range(0.0..750.0);
+            l_rectangles[i].y = 1000.;
+            l_rectangles[i].x += 100. + i as f32 * l_rectangles[i].w * SCALE;
             // println!("{}, {}", l_rectangles[i].x, i);
         }
 
