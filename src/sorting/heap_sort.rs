@@ -1,148 +1,64 @@
-/// Sort a mutable slice using heap sort.
-///
-/// Heap sort is an in-place O(n log n) sorting algorithm. It is based on a
-/// max heap, a binary tree data structure whose main feature is that
-/// parent nodes are always greater or equal to their child nodes.
-///
-/// # Max Heap Implementation
-///
-/// A max heap can be efficiently implemented with an array.
-/// For example, the binary tree:
-/// ```text
-///     1
-///  2     3
-/// 4 5   6 7
-/// ```
-///
-/// ... is represented by the following array:
-/// ```text
-/// 1 23 4567
-/// ```
-///
-/// Given the index `i` of a node, parent and child indices can be calculated
-/// as follows:
-/// ```text
-/// parent(i)      = (i-1) / 2
-/// left_child(i)  = 2*i + 1
-/// right_child(i) = 2*i + 2
-/// ```
+use ggez::{
+    graphics::{self, Color},
+    Context,
+};
 
-/// # Algorithm
-///
-/// Heap sort has two steps:
-///   1. Convert the input array to a max heap.
-///   2. Partition the array into heap part and sorted part. Initially the
-///      heap consists of the whole array and the sorted part is empty:
-///      ```text
-///      arr: [ heap                    |]
-///      ```
-///
-///      Repeatedly swap the root (i.e. the largest) element of the heap with
-///      the last element of the heap and increase the sorted part by one:
-///      ```text
-///      arr: [ root ...   last | sorted ]
-///       --> [ last ... | root   sorted ]
-///      ```
-///
-///      After each swap, fix the heap to make it a valid max heap again.
-///      Once the heap is empty, `arr` is completely sorted.
+use super::{SortElement, Sorter};
 
-pub fn heap_sort<T: Ord>(arr: &mut [T]) {
-    if arr.len() <= 1 {
-        return; // already sorted
-    }
+const NO_RECTS: usize = 150;
 
-    heapify(arr);
-
-    for end in (1..arr.len()).rev() {
-        arr.swap(0, end);
-        move_down(&mut arr[..end], 0);
-    }
+pub struct HeapSort {
+    arr: Vec<SortElement>,
+    sorted: bool,
 }
 
-/// Convert `arr` into a max heap.
-fn heapify<T: Ord>(arr: &mut [T]) {
-    let last_parent = (arr.len() - 2) / 2;
-    for i in (0..=last_parent).rev() {
-        move_down(arr, i);
-    }
-}
-
-/// Move the element at `root` down until `arr` is a max heap again.
-///
-/// This assumes that the subtrees under `root` are valid max heaps already.
-fn move_down<T: Ord>(arr: &mut [T], mut root: usize) {
-    let last = arr.len() - 1;
-    loop {
-        let left = 2 * root + 1;
-        if left > last {
-            break;
+impl HeapSort {
+    pub fn new(ctx: &mut Context) -> Self {
+        let mut sort_elems = vec![];
+        for i in 0..NO_RECTS {
+            sort_elems.push(SortElement::new(ctx, i).unwrap());
         }
-        let right = left + 1;
-        let max = if right <= last && arr[right] > arr[left] {
-            right
-        } else {
-            left
-        };
-
-        if arr[max] > arr[root] {
-            arr.swap(root, max);
+        Self {
+            sorted: false,
+            arr: sort_elems,
         }
-        root = max;
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::sorting::have_same_elements;
-    use crate::sorting::is_sorted;
-
-    #[test]
-    fn empty() {
-        let mut arr: Vec<i32> = Vec::new();
-        let cloned = arr.clone();
-        heap_sort(&mut arr);
-        assert!(is_sorted(&arr) && have_same_elements(&arr, &cloned));
+impl Sorter for HeapSort {
+    fn step(&mut self, ctx: &Context) {
+        todo!();
     }
 
-    #[test]
-    fn single_element() {
-        let mut arr = vec![1];
-        let cloned = arr.clone();
-        heap_sort(&mut arr);
-        assert!(is_sorted(&arr) && have_same_elements(&arr, &cloned));
+    fn get_arr(&self) -> &Vec<SortElement> {
+        &self.arr
     }
 
-    #[test]
-    fn sorted_array() {
-        let mut arr = vec![1, 2, 3, 4];
-        let cloned = arr.clone();
-        heap_sort(&mut arr);
-        assert!(is_sorted(&arr) && have_same_elements(&arr, &cloned));
+    fn is_sorted(&self) -> bool {
+        self.sorted
     }
 
-    #[test]
-    fn unsorted_array() {
-        let mut arr = vec![3, 4, 2, 1];
-        let cloned = arr.clone();
-        heap_sort(&mut arr);
-        assert!(is_sorted(&arr) && have_same_elements(&arr, &cloned));
-    }
+    fn swap_mesh(&mut self, ctx: &Context, id1: usize, id2: usize) {
+        let one = self.arr[id1].rect;
+        let two = self.arr[id2].rect;
+        self.arr[id1].rect.h = two.h;
+        self.arr[id2].rect.h = one.h;
 
-    #[test]
-    fn odd_number_of_elements() {
-        let mut arr = vec![3, 4, 2, 1, 7];
-        let cloned = arr.clone();
-        heap_sort(&mut arr);
-        assert!(is_sorted(&arr) && have_same_elements(&arr, &cloned));
-    }
+        self.arr[id1].mesh = graphics::Mesh::new_rectangle(
+            ctx,
+            graphics::DrawMode::fill(),
+            graphics::Rect::new(one.x, one.y, one.w, two.h),
+            // self.arr[i + 1].state.get_color(),
+            Color::GREEN,
+        )
+        .unwrap();
 
-    #[test]
-    fn repeated_elements() {
-        let mut arr = vec![542, 542, 542, 542];
-        let cloned = arr.clone();
-        heap_sort(&mut arr);
-        assert!(is_sorted(&arr) && have_same_elements(&arr, &cloned));
+        self.arr[id2].mesh = graphics::Mesh::new_rectangle(
+            ctx,
+            graphics::DrawMode::fill(),
+            graphics::Rect::new(two.x, two.y, two.w, one.h),
+            self.arr[id1].state.get_color(),
+        )
+        .unwrap();
     }
 }
