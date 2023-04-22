@@ -20,6 +20,7 @@ pub trait Sorter {
     fn step(&mut self, ctx: &Context);
     fn get_arr(&self) -> &Vec<SortElement>;
     fn is_sorted(&self) -> bool;
+    fn swap_mesh(&mut self, ctx: &Context, id1: usize, id2: usize);
 }
 
 struct BubbleSort {
@@ -50,27 +51,7 @@ impl Sorter for BubbleSort {
         for i in 0..(self.outer_index - 1) {
             if self.arr[i].get_height() > self.arr[i + 1].get_height() {
                 self.sorted = false; // if we meet another value, we obviously are unsorted
-                let one = self.arr[i].rect;
-                let two = self.arr[i + 1].rect;
-                self.arr[i].rect.h = two.h;
-                self.arr[i + 1].rect.h = one.h;
-
-                self.arr[i].mesh = graphics::Mesh::new_rectangle(
-                    ctx,
-                    graphics::DrawMode::fill(),
-                    graphics::Rect::new(one.x, one.y, one.w, two.h),
-                    // self.arr[i + 1].state.get_color(),
-                    Color::GREEN,
-                )
-                .unwrap();
-
-                self.arr[i + 1].mesh = graphics::Mesh::new_rectangle(
-                    ctx,
-                    graphics::DrawMode::fill(),
-                    graphics::Rect::new(two.x, two.y, two.w, one.h),
-                    self.arr[i].state.get_color(),
-                )
-                .unwrap();
+                self.swap_mesh(ctx, i, i + 1);
             }
         }
         self.outer_index -= 1;
@@ -83,6 +64,30 @@ impl Sorter for BubbleSort {
 
     fn is_sorted(&self) -> bool {
         self.sorted
+    }
+
+    fn swap_mesh(&mut self, ctx: &Context, id1: usize, id2: usize) {
+        let one = self.arr[id1].rect;
+        let two = self.arr[id2].rect;
+        self.arr[id1].rect.h = two.h;
+        self.arr[id2].rect.h = one.h;
+
+        self.arr[id1].mesh = graphics::Mesh::new_rectangle(
+            ctx,
+            graphics::DrawMode::fill(),
+            graphics::Rect::new(one.x, one.y, one.w, two.h),
+            // self.arr[i + 1].state.get_color(),
+            Color::GREEN,
+        )
+        .unwrap();
+
+        self.arr[id2].mesh = graphics::Mesh::new_rectangle(
+            ctx,
+            graphics::DrawMode::fill(),
+            graphics::Rect::new(two.x, two.y, two.w, one.h),
+            self.arr[id1].state.get_color(),
+        )
+        .unwrap();
     }
 }
 
@@ -146,18 +151,6 @@ impl SortElement {
     fn get_height(&self) -> f32 {
         -self.rect.h
     }
-
-    // fn swap_with(&mut self, other: &mut SortElement, ctx: &Context) {
-    //     let old_mesh = other.mesh.clone();
-    //     other.mesh = graphics::Mesh::new_rectangle(
-    //         ctx,
-    //         graphics::DrawMode::fill(),
-    //         self.rect,
-    //         self.state.get_color(),
-    //     )
-    //     .unwrap();
-    //     self.mesh = old_mesh;
-    // }
 }
 
 /// Keeps track of current variables and states
