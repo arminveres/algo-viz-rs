@@ -4,10 +4,7 @@ use ggez::{
     Context, GameResult,
 };
 
-use rand::{self, Rng};
-
-const MAX_VALUE: f32 = 750.0;
-// const VERT_SCALE: f32 = MAX_VALUE / RESOLUTION.1 as f32;
+use crate::INIT_WINDOW_SIZE;
 
 #[derive(Default)]
 pub enum SortState {
@@ -39,18 +36,29 @@ pub struct SortElement {
 }
 
 impl SortElement {
-    pub fn new(ctx: &mut Context, i: usize) -> GameResult<Self> {
-        const SCALE: f32 = 0.75;
+    pub fn new(
+        ctx: &mut Context,
+        i: usize,
+        elem_value: f32,
+        max_value: f32,
+        no_rects: u32,
+    ) -> GameResult<Self> {
+        const WIDTH: f32 = 10.;
         const X_OFFSET: f32 = 10.;
-        let mut rng = rand::thread_rng();
+
+        let max_width = no_rects as f32 * WIDTH;
+        let x_scale: f32 = INIT_WINDOW_SIZE.0 / max_width;
+        let y_scale: f32 = INIT_WINDOW_SIZE.1 / max_value;
 
         let l_state = SortState::default();
 
-        let mut l_rectangle = graphics::Rect::new(0., 100., 10., 0.);
-
         // we need to reverse the height, since origin is at top left
-        l_rectangle.h = -rng.gen_range(0.0..MAX_VALUE);
-        l_rectangle.x += X_OFFSET + i as f32 * l_rectangle.w * SCALE;
+        let l_rectangle = graphics::Rect::new(
+            X_OFFSET * x_scale + (i as f32) * WIDTH * x_scale,
+            0.,
+            10. * x_scale,
+            -elem_value * y_scale,
+        );
 
         let l_object = graphics::Mesh::new_rectangle(
             ctx,

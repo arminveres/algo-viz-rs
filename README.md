@@ -15,3 +15,4 @@ For the rust toolchain below `1.67` version `0.8.1` works.**
 - [x] Rectangle visualization
 - [ ] Step to step sorting update in GGEZ
 - [ ] Auralization for sorting: we can use [cpal](https://github.com/RustAudio/cpal.git)
+- [ ] Add tests for sortings algos

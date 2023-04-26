@@ -1,11 +1,9 @@
+use super::{SortElement, Sorter};
 use ggez::{
     graphics::{self, Color},
     Context,
 };
-
-use super::{SortElement, Sorter};
-
-const NO_RECTS: usize = 150;
+use rand::{self, Rng};
 
 pub struct BubbleSort {
     arr: Vec<SortElement>,
@@ -14,15 +12,18 @@ pub struct BubbleSort {
 }
 
 impl BubbleSort {
-    pub fn new(ctx: &mut Context) -> Self {
+    pub fn new(ctx: &mut Context, max_value: f32, no_rects: u32) -> Self {
         let mut sort_elems = vec![];
-        for i in 0..NO_RECTS {
-            sort_elems.push(SortElement::new(ctx, i).unwrap());
+        let mut rng = rand::thread_rng();
+        for i in 0..no_rects {
+            let elem_value = rng.gen_range(0.0..max_value);
+            sort_elems
+                .push(SortElement::new(ctx, i as usize, elem_value, max_value, no_rects).unwrap());
         }
         Self {
             sorted: false,
             arr: sort_elems,
-            outer_index: NO_RECTS,
+            outer_index: no_rects as usize,
         }
     }
 }
@@ -61,7 +62,7 @@ impl Sorter for BubbleSort {
             graphics::DrawMode::fill(),
             graphics::Rect::new(0.0, 0.0, old_rect.w, new_rect.h), // graphics::Rect::new(one.x, one.y, one.w, two.h),
             // self.arr[i + 1].state.get_color(),
-            Color::GREEN,
+            Color::RED,
         )
         .unwrap();
 
