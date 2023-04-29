@@ -1,5 +1,3 @@
-mod sorting;
-
 use ggez::{event, glam::*, graphics, Context, GameResult};
 use sorting::{BubbleSort, Sorter};
 

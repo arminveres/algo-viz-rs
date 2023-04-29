@@ -7,6 +7,7 @@ use ggez::{
 use rand::{self, Rng};
 
 const MAX_VALUE: f32 = 750.0;
+// const VERT_SCALE: f32 = MAX_VALUE / RESOLUTION.1 as f32;
 
 #[derive(Default)]
 pub enum SortState {
@@ -30,9 +31,9 @@ impl SortState {
 // new one, that has the updated color.
 pub struct SortElement {
     /// Mesh that gets drawn
-    pub(crate) mesh: graphics::Mesh,
+    pub mesh: graphics::Mesh,
     /// Part that will get sorted
-    pub(crate) rect: graphics::Rect,
+    pub rect: graphics::Rect,
     /// Holds sorting state
     pub(crate) state: SortState,
 }
