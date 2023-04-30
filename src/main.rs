@@ -1,7 +1,20 @@
+use clap::Parser;
 use ggez::glam::Vec2;
 use ggez::graphics::{self, Color, Rect};
 use ggez::{event, Context, GameResult};
 use sorting::{BubbleSort, Sorter, INIT_WINDOW_SIZE};
+
+#[derive(Parser)]
+struct CLIArgs {
+    #[arg(short, long, default_value_t = 1000.)]
+    max_val: f32,
+    #[arg(short, long, default_value_t = 150)]
+    no_rects: u32,
+    #[arg(short, long, default_value_t = 10)]
+    fps: u32,
+    #[arg(short, long, default_value_t = String::from("Bubblesort"))]
+    sorter_name: String,
+}
 
 struct WindowSettings {
     resize_projection: bool,
@@ -87,6 +100,8 @@ impl<T: Sorter> event::EventHandler<ggez::GameError> for GameState<T> {
 }
 
 pub fn main() -> GameResult {
+    let args = CLIArgs::parse();
+
     let (mut ctx, event_loop) = ggez::ContextBuilder::new("algo-viz-rs", "Armin Veres")
         .window_mode(
             ggez::conf::WindowMode::default().dimensions(INIT_WINDOW_SIZE.0, INIT_WINDOW_SIZE.1),
@@ -94,13 +109,11 @@ pub fn main() -> GameResult {
         .window_setup(ggez::conf::WindowSetup::default().title("Sorting Algorithm Visualizer"))
         .build()?;
 
-    // TODO: (aver) add argparsing
-    let max_val = 750.;
-    let no_rects = 150;
-    let desired_fps = 200;
+    let sorter = match args.sorter_name.as_str() {
+        "Bubblesort" => BubbleSort::new(&mut ctx, args.max_val, args.no_rects),
+        _ => BubbleSort::new(&mut ctx, args.max_val, args.no_rects),
+    };
 
-    // TODO: (aver) make sorter a parameter that initializes the state internally
-    let l_sorter = BubbleSort::new(&mut ctx, max_val, no_rects);
-    let state = GameState::new(l_sorter, &mut ctx, desired_fps)?;
+    let state = GameState::new(sorter, &mut ctx, args.fps)?;
     event::run(ctx, event_loop, state)
 }
