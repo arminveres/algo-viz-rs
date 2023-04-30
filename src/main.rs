@@ -70,12 +70,16 @@ impl<T: Sorter> event::EventHandler<ggez::GameError> for GameState<T> {
         canvas.set_screen_coordinates(self.screen_coords); // set custom canvas for resizing
 
         let arr = self.sorter.get_arr();
+        // draw each mesh with the coordinates being the adjusted x coordinates and the width of
+        // the default resolution, which gets scaled, when resizing
         for obj in &mut *arr {
             canvas.draw(&obj.mesh, Vec2::new(obj.rect.x, INIT_WINDOW_SIZE.1));
         }
 
         canvas.finish(ctx)?;
 
+        // Update all underlying meshes once again after drawing, since some bars stay red, even
+        // after going through them in the swap function
         for elem in self.sorter.get_arr().iter_mut() {
             let old_rect = elem.rect;
             (*elem).mesh = graphics::Mesh::new_rectangle(
