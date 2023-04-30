@@ -1,11 +1,7 @@
-use ggez::{
-    graphics::{self, Color},
-    Context,
-};
+use ggez::Context;
+use rand::{self, Rng};
 
 use super::{SortElement, Sorter};
-
-const NO_RECTS: usize = 150;
 
 pub struct HeapSort {
     arr: Vec<SortElement>,
@@ -13,15 +9,31 @@ pub struct HeapSort {
 }
 
 impl HeapSort {
-    pub fn new(ctx: &mut Context) -> Self {
+    pub fn new(ctx: &mut Context, max_value: f32, no_rects: u32) -> Self {
         let mut sort_elems = vec![];
-        for i in 0..NO_RECTS {
-            sort_elems.push(SortElement::new(ctx, i).unwrap());
+        let mut rng = rand::thread_rng();
+        for i in 0..no_rects {
+            let elem_value = rng.gen_range(0.0..max_value);
+            sort_elems
+                .push(SortElement::new(ctx, i as usize, elem_value, max_value, no_rects).unwrap());
         }
         Self {
             sorted: false,
             arr: sort_elems,
         }
+    }
+    // --------------------------------------------------------------------------------------------
+    // helper functions for heapsort
+    // --------------------------------------------------------------------------------------------
+    /// Convert `arr` into a max heap.
+    fn heapify() {
+        todo!()
+    }
+
+    /// Move the element at `root` down until `arr` is a max heap again.
+    /// This assumes that the subtrees under `root` are valid max heaps already.
+    fn move_down() {
+        todo!()
     }
 }
 
