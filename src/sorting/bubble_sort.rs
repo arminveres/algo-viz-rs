@@ -33,7 +33,7 @@ impl Sorter for BubbleSort {
         // empty
         self.sorted = true;
         for i in 0..(self.outer_index - 1) {
-            if self.arr[i].get_height() > self.arr[i + 1].get_height() {
+            if self.arr[i].get_sort_value() > self.arr[i + 1].get_sort_value() {
                 self.sorted = false; // if we meet another value, we obviously are unsorted
                 self.swap_mesh(ctx, i, i + 1);
             }
@@ -50,26 +50,27 @@ impl Sorter for BubbleSort {
         self.sorted
     }
 
-    fn swap_mesh(&mut self, ctx: &Context, id1: usize, id2: usize) {
-        let one = self.arr[id1].rect;
-        let two = self.arr[id2].rect;
-        self.arr[id1].rect.h = two.h;
-        self.arr[id2].rect.h = one.h;
+    fn swap_mesh(&mut self, ctx: &Context, old_id: usize, new_id: usize) {
+        let old_rect = self.arr[old_id].rect;
+        let new_rect = self.arr[new_id].rect;
+        self.arr[old_id].rect.h = new_rect.h;
+        self.arr[new_id].rect.h = old_rect.h;
 
-        self.arr[id1].mesh = graphics::Mesh::new_rectangle(
+        self.arr[old_id].mesh = graphics::Mesh::new_rectangle(
             ctx,
             graphics::DrawMode::fill(),
-            graphics::Rect::new(one.x, one.y, one.w, two.h),
+            graphics::Rect::new(0.0, 0.0, old_rect.w, new_rect.h), // graphics::Rect::new(one.x, one.y, one.w, two.h),
             // self.arr[i + 1].state.get_color(),
             Color::GREEN,
         )
         .unwrap();
 
-        self.arr[id2].mesh = graphics::Mesh::new_rectangle(
+        self.arr[new_id].mesh = graphics::Mesh::new_rectangle(
             ctx,
             graphics::DrawMode::fill(),
-            graphics::Rect::new(two.x, two.y, two.w, one.h),
-            self.arr[id1].state.get_color(),
+            graphics::Rect::new(0.0, 0.0, new_rect.w, old_rect.h), // graphics::Rect::new(two.x, two.y, two.w, one.h),
+            // self.arr[id1].state.get_color(),
+            Color::WHITE,
         )
         .unwrap();
     }

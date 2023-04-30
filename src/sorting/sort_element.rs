@@ -66,7 +66,7 @@ impl SortElement {
         })
     }
 
-    pub fn get_height(&self) -> f32 {
+    pub fn get_sort_value(&self) -> f32 {
         -self.rect.h
     }
 }

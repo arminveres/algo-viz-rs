@@ -11,5 +11,5 @@ pub trait Sorter {
     /// Returns whether the array is sorted
     fn is_sorted(&self) -> bool;
     /// Swaps the underlying meshes of two objects
-    fn swap_mesh(&mut self, ctx: &Context, id1: usize, id2: usize);
+    fn swap_mesh(&mut self, ctx: &Context, old_id: usize, new_id: usize);
 }

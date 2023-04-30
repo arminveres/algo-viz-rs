@@ -1,5 +1,5 @@
 [package]
-name = "algo-vis-rs"
+name = "algo-viz-rs"
 version = "0.1.0"
 edition = "2021"
 

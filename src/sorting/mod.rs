@@ -8,6 +8,9 @@ pub use self::heap_sort::HeapSort;
 pub use self::sort_element::SortElement;
 pub use self::sorter::Sorter;
 
+/// Important constants, also used for scaling the animation
+pub const INIT_WINDOW_SIZE: (f32, f32) = (800., 600.);
+
 // #[cfg(test)]
 // use std::cmp;
 
