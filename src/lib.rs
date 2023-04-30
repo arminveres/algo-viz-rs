@@ -1,2 +1,2 @@
-pub mod sorting;
-pub use sorting::*;
+pub mod libsort;
+pub use libsort::*;
