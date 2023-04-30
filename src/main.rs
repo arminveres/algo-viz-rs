@@ -20,16 +20,20 @@ struct WindowSettings {
     resize_projection: bool,
 }
 
-struct GameState<T: Sorter> {
+struct GameState {
     frames: usize,
     window_settings: WindowSettings,
     screen_coords: Rect,
-    sorter: T,
+    sorter: Box<dyn Sorter>,
     desired_fps: u32,
 }
 
-impl<T: Sorter> GameState<T> {
-    fn new(given_sorter: T, ctx: &mut Context, desired_fps: u32) -> GameResult<GameState<T>> {
+impl GameState {
+    fn new(
+        given_sorter: Box<dyn Sorter>,
+        ctx: &mut Context,
+        desired_fps: u32,
+    ) -> GameResult<GameState> {
         let s = GameState {
             frames: 0,
             window_settings: WindowSettings {
@@ -48,7 +52,7 @@ impl<T: Sorter> GameState<T> {
     }
 }
 
-impl<T: Sorter> event::EventHandler<ggez::GameError> for GameState<T> {
+impl event::EventHandler<ggez::GameError> for GameState {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
         while ctx.time.check_update_time(self.desired_fps) {
             if !self.sorter.is_sorted() {
@@ -113,13 +117,12 @@ pub fn main() -> GameResult {
         .window_setup(ggez::conf::WindowSetup::default().title("Sorting Algorithm Visualizer"))
         .build()?;
 
-    // let mut sorter: Box<dyn Sorter> = match args.sorter_name.as_str() {
-    //     "Bubblesort" => Box::new(BubbleSort::new(&mut ctx, args.max_val, args.no_rects)),
-    //     "Insertionsort" => Box::new(InsertionSort::new(&mut ctx, args.max_val, args.no_rects)),
-    //     _ => Box::new(BubbleSort::new(&mut ctx, args.max_val, args.no_rects)),
-    // };
+    let sorter: Box<dyn Sorter> = match args.sorter_name.as_str() {
+        "Bubblesort" => Box::new(BubbleSort::new(&mut ctx, args.max_val, args.no_rects)),
+        "Insertionsort" => Box::new(InsertionSort::new(&mut ctx, args.max_val, args.no_rects)),
+        _ => Box::new(BubbleSort::new(&mut ctx, args.max_val, args.no_rects)),
+    };
 
-    let sorter = InsertionSort::new(&mut ctx, args.max_val, args.no_rects);
     let state = GameState::new(sorter, &mut ctx, args.fps)?;
 
     event::run(ctx, event_loop, state)
