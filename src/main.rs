@@ -1,8 +1,14 @@
-use clap::Parser;
+use clap::{Parser, ValueEnum};
 use ggez::glam::Vec2;
 use ggez::graphics::{self, Color, Rect};
 use ggez::{event, Context, GameResult};
 use sorting::{BubbleSort, InsertionSort, Sorter, INIT_WINDOW_SIZE};
+
+#[derive(Clone, ValueEnum)]
+enum SortingAlgorithms {
+    Bubblesort,
+    Insertionsort,
+}
 
 #[derive(Parser)]
 struct CLIArgs {
@@ -12,8 +18,8 @@ struct CLIArgs {
     no_rects: u32,
     #[arg(short, long, default_value_t = 10)]
     fps: u32,
-    #[arg(short, long, default_value_t = String::from("Bubblesort"))]
-    sorter_name: String,
+    #[arg(value_enum, default_value_t = SortingAlgorithms::Bubblesort)]
+    sorting_algo: SortingAlgorithms,
 }
 
 struct WindowSettings {
@@ -117,10 +123,13 @@ pub fn main() -> GameResult {
         .window_setup(ggez::conf::WindowSetup::default().title("Sorting Algorithm Visualizer"))
         .build()?;
 
-    let sorter: Box<dyn Sorter> = match args.sorter_name.as_str() {
-        "Bubblesort" => Box::new(BubbleSort::new(&mut ctx, args.max_val, args.no_rects)),
-        "Insertionsort" => Box::new(InsertionSort::new(&mut ctx, args.max_val, args.no_rects)),
-        _ => Box::new(BubbleSort::new(&mut ctx, args.max_val, args.no_rects)),
+    let sorter: Box<dyn Sorter> = match args.sorting_algo {
+        SortingAlgorithms::Bubblesort => {
+            Box::new(BubbleSort::new(&mut ctx, args.max_val, args.no_rects))
+        }
+        SortingAlgorithms::Insertionsort => {
+            Box::new(InsertionSort::new(&mut ctx, args.max_val, args.no_rects))
+        }
     };
 
     let state = GameState::new(sorter, &mut ctx, args.fps)?;
