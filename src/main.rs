@@ -1,85 +1,119 @@
-mod sorting;
+use clap::Parser;
+use ggez::glam::Vec2;
+use ggez::graphics::{self, Color, Rect};
+use ggez::{event, Context, GameResult};
+use sorting::{BubbleSort, Sorter, INIT_WINDOW_SIZE};
 
-use ggez::{
-    event,
-    glam::*,
-    graphics::{self, Color},
-    Context, GameResult,
-};
-
-const RESOLUTION: (f32, f32) = (400.0, 400.0);
-const NO_RECTS: usize = 150;
-
-/// Keeps track of current variables and states
-struct GameState {
-    frames: usize,
-    objects: Vec<graphics::Mesh>,
-    rectangles: [graphics::Rect; NO_RECTS],
+#[derive(Parser)]
+struct CLIArgs {
+    #[arg(short, long, default_value_t = 1000.)]
+    max_val: f32,
+    #[arg(short, long, default_value_t = 150)]
+    no_rects: u32,
+    #[arg(short, long, default_value_t = 10)]
+    fps: u32,
+    #[arg(short, long, default_value_t = String::from("Bubblesort"))]
+    sorter_name: String,
 }
 
-impl GameState {
-    fn new(ctx: &mut Context) -> GameResult<GameState> {
-        const SCALE: f32 = 0.75;
-        let mut l_rectangles: [graphics::Rect; NO_RECTS] = [graphics::Rect::default(); NO_RECTS];
+struct WindowSettings {
+    resize_projection: bool,
+}
 
-        for i in 0..l_rectangles.len() {
-            l_rectangles[i].w = 10.;
-            l_rectangles[i].h = 250.;
-            l_rectangles[i].x += i as f32 * l_rectangles[i].w * SCALE;
-            // println!("{}, {}", l_rectangles[i].x, i);
-        }
+struct GameState<T: Sorter> {
+    frames: usize,
+    window_settings: WindowSettings,
+    screen_coords: Rect,
+    sorter: T,
+    desired_fps: u32,
+}
 
-        let mut l_objects = vec![];
-
-        for i in 0..NO_RECTS {
-            l_objects.push(graphics::Mesh::new_rectangle(
-                ctx,
-                graphics::DrawMode::fill(),
-                l_rectangles[i],
-                Color::WHITE,
-            )?);
-        }
-
-        Ok(GameState {
+impl<T: Sorter> GameState<T> {
+    fn new(given_sorter: T, ctx: &mut Context, desired_fps: u32) -> GameResult<GameState<T>> {
+        let s = GameState {
             frames: 0,
-            objects: l_objects,
-            rectangles: l_rectangles,
-        })
+            window_settings: WindowSettings {
+                resize_projection: false,
+            },
+            screen_coords: Rect {
+                x: 0.,
+                y: 0.,
+                w: ctx.gfx.drawable_size().0,
+                h: ctx.gfx.drawable_size().1,
+            },
+            sorter: given_sorter,
+            desired_fps,
+        };
+        Ok(s)
     }
 }
 
-impl event::EventHandler<ggez::GameError> for GameState {
-    fn update(&mut self, _ctx: &mut Context) -> GameResult {
-        // TODO: implement update logic
+impl<T: Sorter> event::EventHandler<ggez::GameError> for GameState<T> {
+    fn update(&mut self, ctx: &mut Context) -> GameResult {
+        while ctx.time.check_update_time(self.desired_fps) {
+            if !self.sorter.is_sorted() {
+                self.sorter.step(ctx);
+            } else {
+                println!("it's sorted!");
+            }
+        }
+        self.frames += 1;
+        if (self.frames % 100) == 0 {
+            println!("FPS: {}", ctx.time.fps());
+        }
         Ok(())
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         // NOTE: Drawing starts from top left!
-
         let mut canvas = graphics::Canvas::from_frame(ctx, graphics::Color::BLACK);
+        canvas.set_screen_coordinates(self.screen_coords); // set custom canvas for resizing
 
-        let mut i = 0;
-        for obj in &self.objects {
-            canvas.draw(obj, Vec2::new(self.rectangles[i].x, RESOLUTION.1));
-            i += 1;
+        let arr = self.sorter.get_arr();
+        for obj in &mut *arr {
+            canvas.draw(&obj.mesh, Vec2::new(obj.rect.x, INIT_WINDOW_SIZE.1));
         }
 
         canvas.finish(ctx)?;
 
-        self.frames += 1;
-        if (self.frames % 100) == 0 {
-            println!("FPS: {}", ctx.time.fps());
+        for elem in self.sorter.get_arr().iter_mut() {
+            let old_rect = elem.rect;
+            (*elem).mesh = graphics::Mesh::new_rectangle(
+                ctx,
+                graphics::DrawMode::fill(),
+                graphics::Rect::new(0.0, 0.0, old_rect.w, old_rect.h),
+                Color::WHITE,
+            )
+            .unwrap();
         }
 
+        Ok(())
+    }
+
+    fn resize_event(&mut self, _ctx: &mut Context, width: f32, height: f32) -> GameResult {
+        println!("Resized screen to {width}, {height}");
+        if self.window_settings.resize_projection {
+            self.screen_coords = graphics::Rect::new(0.0, 0.0, width, height);
+        }
         Ok(())
     }
 }
 
 pub fn main() -> GameResult {
-    let (mut ctx, event_loop) = ggez::ContextBuilder::new("algo-vis-rs", "Armin Veres").build()?;
+    let args = CLIArgs::parse();
 
-    let state = GameState::new(&mut ctx)?;
+    let (mut ctx, event_loop) = ggez::ContextBuilder::new("algo-viz-rs", "Armin Veres")
+        .window_mode(
+            ggez::conf::WindowMode::default().dimensions(INIT_WINDOW_SIZE.0, INIT_WINDOW_SIZE.1),
+        )
+        .window_setup(ggez::conf::WindowSetup::default().title("Sorting Algorithm Visualizer"))
+        .build()?;
 
+    let sorter = match args.sorter_name.as_str() {
+        "Bubblesort" => BubbleSort::new(&mut ctx, args.max_val, args.no_rects),
+        _ => BubbleSort::new(&mut ctx, args.max_val, args.no_rects),
+    };
+
+    let state = GameState::new(sorter, &mut ctx, args.fps)?;
     event::run(ctx, event_loop, state)
 }
