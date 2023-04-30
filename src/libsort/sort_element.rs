@@ -24,6 +24,7 @@ impl SortState {
     }
 }
 
+#[derive(Clone)]
 // TODO: implement color change, currently it looks like we would have to replace the mesh with a
 // new one, that has the updated color.
 pub struct SortElement {
@@ -31,8 +32,6 @@ pub struct SortElement {
     pub mesh: graphics::Mesh,
     /// Part that will get sorted
     pub rect: graphics::Rect,
-    /// Holds sorting state
-    pub(crate) state: SortState,
 }
 
 impl SortElement {
@@ -70,7 +69,6 @@ impl SortElement {
         Ok(Self {
             mesh: l_object,
             rect: l_rectangle,
-            state: l_state,
         })
     }
 

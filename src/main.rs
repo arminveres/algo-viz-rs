@@ -1,8 +1,14 @@
-use clap::Parser;
+use clap::{Parser, ValueEnum};
 use ggez::glam::Vec2;
 use ggez::graphics::{self, Color, Rect};
 use ggez::{event, Context, GameResult};
-use sorting::{BubbleSort, Sorter, INIT_WINDOW_SIZE};
+use sorting::{BubbleSort, InsertionSort, Sorter, INIT_WINDOW_SIZE};
+
+#[derive(Clone, ValueEnum)]
+enum SortingAlgorithms {
+    Bubblesort,
+    Insertionsort,
+}
 
 #[derive(Parser)]
 struct CLIArgs {
@@ -12,24 +18,28 @@ struct CLIArgs {
     no_rects: u32,
     #[arg(short, long, default_value_t = 10)]
     fps: u32,
-    #[arg(short, long, default_value_t = String::from("Bubblesort"))]
-    sorter_name: String,
+    #[arg(value_enum, default_value_t = SortingAlgorithms::Bubblesort)]
+    sorting_algo: SortingAlgorithms,
 }
 
 struct WindowSettings {
     resize_projection: bool,
 }
 
-struct GameState<T: Sorter> {
+struct GameState {
     frames: usize,
     window_settings: WindowSettings,
     screen_coords: Rect,
-    sorter: T,
+    sorter: Box<dyn Sorter>,
     desired_fps: u32,
 }
 
-impl<T: Sorter> GameState<T> {
-    fn new(given_sorter: T, ctx: &mut Context, desired_fps: u32) -> GameResult<GameState<T>> {
+impl GameState {
+    fn new(
+        given_sorter: Box<dyn Sorter>,
+        ctx: &mut Context,
+        desired_fps: u32,
+    ) -> GameResult<GameState> {
         let s = GameState {
             frames: 0,
             window_settings: WindowSettings {
@@ -48,7 +58,7 @@ impl<T: Sorter> GameState<T> {
     }
 }
 
-impl<T: Sorter> event::EventHandler<ggez::GameError> for GameState<T> {
+impl event::EventHandler<ggez::GameError> for GameState {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
         while ctx.time.check_update_time(self.desired_fps) {
             if !self.sorter.is_sorted() {
@@ -70,12 +80,16 @@ impl<T: Sorter> event::EventHandler<ggez::GameError> for GameState<T> {
         canvas.set_screen_coordinates(self.screen_coords); // set custom canvas for resizing
 
         let arr = self.sorter.get_arr();
+        // draw each mesh with the coordinates being the adjusted x coordinates and the width of
+        // the default resolution, which gets scaled, when resizing
         for obj in &mut *arr {
             canvas.draw(&obj.mesh, Vec2::new(obj.rect.x, INIT_WINDOW_SIZE.1));
         }
 
         canvas.finish(ctx)?;
 
+        // Update all underlying meshes once again after drawing, since some bars stay red, even
+        // after going through them in the swap function
         for elem in self.sorter.get_arr().iter_mut() {
             let old_rect = elem.rect;
             (*elem).mesh = graphics::Mesh::new_rectangle(
@@ -109,11 +123,16 @@ pub fn main() -> GameResult {
         .window_setup(ggez::conf::WindowSetup::default().title("Sorting Algorithm Visualizer"))
         .build()?;
 
-    let sorter = match args.sorter_name.as_str() {
-        "Bubblesort" => BubbleSort::new(&mut ctx, args.max_val, args.no_rects),
-        _ => BubbleSort::new(&mut ctx, args.max_val, args.no_rects),
+    let sorter: Box<dyn Sorter> = match args.sorting_algo {
+        SortingAlgorithms::Bubblesort => {
+            Box::new(BubbleSort::new(&mut ctx, args.max_val, args.no_rects))
+        }
+        SortingAlgorithms::Insertionsort => {
+            Box::new(InsertionSort::new(&mut ctx, args.max_val, args.no_rects))
+        }
     };
 
     let state = GameState::new(sorter, &mut ctx, args.fps)?;
+
     event::run(ctx, event_loop, state)
 }
