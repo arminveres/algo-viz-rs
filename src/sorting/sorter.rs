@@ -7,7 +7,7 @@ pub trait Sorter {
     /// One step is one sort inside a sorting algorithm in which it is implemented
     fn step(&mut self, ctx: &Context);
     /// Returns the underlying container, where the SortElements are kept
-    fn get_arr(&self) -> &Vec<SortElement>;
+    fn get_arr(&mut self) -> &mut Vec<SortElement>;
     /// Returns whether the array is sorted
     fn is_sorted(&self) -> bool;
     /// Swaps the underlying meshes of two objects

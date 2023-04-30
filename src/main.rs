@@ -1,9 +1,7 @@
 use ggez::glam::Vec2;
-use ggez::graphics::{self, Rect};
+use ggez::graphics::{self, Color, Rect};
 use ggez::{event, Context, GameResult};
 use sorting::{BubbleSort, Sorter, INIT_WINDOW_SIZE};
-
-const DESIRED_FPS: u32 = 10;
 
 struct WindowSettings {
     resize_projection: bool,
@@ -14,10 +12,11 @@ struct GameState<T: Sorter> {
     window_settings: WindowSettings,
     screen_coords: Rect,
     sorter: T,
+    desired_fps: u32,
 }
 
 impl<T: Sorter> GameState<T> {
-    fn new(given_sorter: T, ctx: &mut Context) -> GameResult<GameState<T>> {
+    fn new(given_sorter: T, ctx: &mut Context, desired_fps: u32) -> GameResult<GameState<T>> {
         let s = GameState {
             frames: 0,
             window_settings: WindowSettings {
@@ -30,6 +29,7 @@ impl<T: Sorter> GameState<T> {
                 h: ctx.gfx.drawable_size().1,
             },
             sorter: given_sorter,
+            desired_fps,
         };
         Ok(s)
     }
@@ -37,11 +37,11 @@ impl<T: Sorter> GameState<T> {
 
 impl<T: Sorter> event::EventHandler<ggez::GameError> for GameState<T> {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
-        while ctx.time.check_update_time(DESIRED_FPS) {
+        while ctx.time.check_update_time(self.desired_fps) {
             if !self.sorter.is_sorted() {
                 self.sorter.step(ctx);
             } else {
-                // println!("it's sorted!");
+                println!("it's sorted!");
             }
         }
         self.frames += 1;
@@ -56,14 +56,23 @@ impl<T: Sorter> event::EventHandler<ggez::GameError> for GameState<T> {
         let mut canvas = graphics::Canvas::from_frame(ctx, graphics::Color::BLACK);
         canvas.set_screen_coordinates(self.screen_coords); // set custom canvas for resizing
 
-        let mut i = 0;
         let arr = self.sorter.get_arr();
-        for obj in arr {
-            canvas.draw(&obj.mesh, Vec2::new(arr[i].rect.x, INIT_WINDOW_SIZE.1));
-            i += 1;
+        for obj in &mut *arr {
+            canvas.draw(&obj.mesh, Vec2::new(obj.rect.x, INIT_WINDOW_SIZE.1));
         }
 
         canvas.finish(ctx)?;
+
+        for elem in self.sorter.get_arr().iter_mut() {
+            let old_rect = elem.rect;
+            (*elem).mesh = graphics::Mesh::new_rectangle(
+                ctx,
+                graphics::DrawMode::fill(),
+                graphics::Rect::new(0.0, 0.0, old_rect.w, old_rect.h),
+                Color::WHITE,
+            )
+            .unwrap();
+        }
 
         Ok(())
     }
@@ -78,7 +87,6 @@ impl<T: Sorter> event::EventHandler<ggez::GameError> for GameState<T> {
 }
 
 pub fn main() -> GameResult {
-    // TODO: (aver) add argparsing
     let (mut ctx, event_loop) = ggez::ContextBuilder::new("algo-viz-rs", "Armin Veres")
         .window_mode(
             ggez::conf::WindowMode::default().dimensions(INIT_WINDOW_SIZE.0, INIT_WINDOW_SIZE.1),
@@ -86,10 +94,13 @@ pub fn main() -> GameResult {
         .window_setup(ggez::conf::WindowSetup::default().title("Sorting Algorithm Visualizer"))
         .build()?;
 
+    // TODO: (aver) add argparsing
     let max_val = 750.;
     let no_rects = 150;
+    let desired_fps = 200;
+
     // TODO: (aver) make sorter a parameter that initializes the state internally
     let l_sorter = BubbleSort::new(&mut ctx, max_val, no_rects);
-    let state = GameState::new(l_sorter, &mut ctx)?;
+    let state = GameState::new(l_sorter, &mut ctx, desired_fps)?;
     event::run(ctx, event_loop, state)
 }
