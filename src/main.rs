@@ -2,7 +2,7 @@ use clap::Parser;
 use ggez::glam::Vec2;
 use ggez::graphics::{self, Color, Rect};
 use ggez::{event, Context, GameResult};
-use sorting::{BubbleSort, Sorter, INIT_WINDOW_SIZE};
+use sorting::{BubbleSort, InsertionSort, Sorter, INIT_WINDOW_SIZE};
 
 #[derive(Parser)]
 struct CLIArgs {
@@ -113,11 +113,14 @@ pub fn main() -> GameResult {
         .window_setup(ggez::conf::WindowSetup::default().title("Sorting Algorithm Visualizer"))
         .build()?;
 
-    let sorter = match args.sorter_name.as_str() {
-        "Bubblesort" => BubbleSort::new(&mut ctx, args.max_val, args.no_rects),
-        _ => BubbleSort::new(&mut ctx, args.max_val, args.no_rects),
-    };
+    // let mut sorter: Box<dyn Sorter> = match args.sorter_name.as_str() {
+    //     "Bubblesort" => Box::new(BubbleSort::new(&mut ctx, args.max_val, args.no_rects)),
+    //     "Insertionsort" => Box::new(InsertionSort::new(&mut ctx, args.max_val, args.no_rects)),
+    //     _ => Box::new(BubbleSort::new(&mut ctx, args.max_val, args.no_rects)),
+    // };
 
+    let sorter = InsertionSort::new(&mut ctx, args.max_val, args.no_rects);
     let state = GameState::new(sorter, &mut ctx, args.fps)?;
+
     event::run(ctx, event_loop, state)
 }
