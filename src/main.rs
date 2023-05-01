@@ -86,6 +86,10 @@ impl event::EventHandler<ggez::GameError> for GameState {
             canvas.draw(&obj.mesh, Vec2::new(obj.rect.x, INIT_WINDOW_SIZE.1));
         }
 
+        // Add name of sorting algorithm in top left corner
+        let text = graphics::Text::new(self.sorter.get_name());
+        canvas.draw(&text, Vec2::new(0., 0.));
+
         canvas.finish(ctx)?;
 
         // Update all underlying meshes once again after drawing, since some bars stay red, even

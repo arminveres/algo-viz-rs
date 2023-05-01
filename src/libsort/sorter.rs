@@ -13,6 +13,8 @@ pub trait Sorter {
     fn get_arr(&mut self) -> &mut Vec<SortElement>;
     /// Returns whether the array is sorted
     fn is_sorted(&self) -> bool;
+    /// Returns the name of the current sorting algorithm
+    fn get_name(&self) -> &str;
 }
 
 /// Swaps the underlying meshes of two objects

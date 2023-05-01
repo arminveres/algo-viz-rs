@@ -61,4 +61,15 @@ impl Sorter for HeapSort {
         )
         .unwrap();
     }
+
+    fn get_arr(&mut self) -> &mut Vec<SortElement> {
+        &mut self.arr
+    }
+    fn is_sorted(&self) -> bool {
+        self.sorted
+    }
+
+    fn get_name(&self) -> &str {
+        "Heapsort"
+    }
 }

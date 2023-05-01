@@ -32,10 +32,11 @@ impl InsertionSort {
         }
     }
 
+    /// Copies the mesh and height of the `from_elem` to the `SortElement` at `to_id` in `self.arr`
     fn copy_mesh(&mut self, ctx: &Context, to_id: usize, from_elem: SortElement) {
         let sortelems = &mut self.arr;
 
-        let old_rect = from_elem.rect.clone();
+        let old_rect = from_elem.rect;
         sortelems[to_id].rect.h = old_rect.h;
 
         sortelems[to_id].mesh = graphics::Mesh::new_rectangle(
@@ -82,5 +83,9 @@ impl Sorter for InsertionSort {
 
     fn is_sorted(&self) -> bool {
         self.sorted
+    }
+
+    fn get_name(&self) -> &str {
+        "Insertionsort"
     }
 }

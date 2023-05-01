@@ -59,4 +59,8 @@ impl Sorter for BubbleSort {
     fn is_sorted(&self) -> bool {
         self.sorted
     }
+
+    fn get_name(&self) -> &str {
+        "Bubblesort"
+    }
 }
