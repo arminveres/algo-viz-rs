@@ -53,7 +53,7 @@ impl SortElement {
 
         // we need to reverse the height, since origin is at top left
         let l_rectangle = graphics::Rect::new(
-            X_OFFSET * x_scale + (i as f32) * WIDTH * x_scale,
+            X_OFFSET * x_scale * (i as f32),
             0.,
             10. * x_scale,
             -elem_value * y_scale,
