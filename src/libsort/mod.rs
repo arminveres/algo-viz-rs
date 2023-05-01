@@ -1,3 +1,5 @@
+//! This library is a wrapper and implementation for sorting algorithms, which get visualized by
+//! ggez.
 mod bubble_sort;
 // mod heap_sort;
 mod insertion_sort;

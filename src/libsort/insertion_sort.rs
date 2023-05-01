@@ -5,6 +5,9 @@ use ggez::{
 };
 use rand::{self, Rng};
 
+/// Implements the Insertionsort algorithms
+///
+/// The struct contains various variables that keep track of each step.
 pub struct InsertionSort {
     arr: Vec<SortElement>,
     sorted: bool,

@@ -25,13 +25,16 @@ impl SortState {
 }
 
 #[derive(Clone)]
-// TODO: implement color change, currently it looks like we would have to replace the mesh with a
-// new one, that has the updated color.
+/// Contains `mesh` and `rect` which mainly represents the bars drawn and also the coordinates
+/// Gets sorted as a whole.
 pub struct SortElement {
     /// Mesh that gets drawn
     pub mesh: graphics::Mesh,
     /// Part that will get sorted
+    /// NOTE: use zero coordinates, otherwise the position will get added to the mesh as well
     pub rect: graphics::Rect,
+    // FIXME: implement color change, currently it looks like we would have to replace the mesh with a
+    // new one, that has the updated color.
 }
 
 impl SortElement {

@@ -2,6 +2,9 @@ use super::{sorter::swap_mesh, SortElement, Sorter};
 use ggez::Context;
 use rand::{self, Rng};
 
+/// Implements the Bubblesort algorithms
+///
+/// The struct contains various variables that keep track of each step.
 pub struct BubbleSort {
     arr: Vec<SortElement>,
     sorted: bool,

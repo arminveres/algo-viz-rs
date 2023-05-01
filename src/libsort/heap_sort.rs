@@ -30,38 +30,6 @@ impl Sorter for HeapSort {
         todo!();
     }
 
-    fn get_arr(&self) -> &Vec<SortElement> {
-        &self.arr
-    }
-
-    fn is_sorted(&self) -> bool {
-        self.sorted
-    }
-
-    fn swap_mesh(&mut self, ctx: &Context, id1: usize, id2: usize) {
-        let one = self.arr[id1].rect;
-        let two = self.arr[id2].rect;
-        self.arr[id1].rect.h = two.h;
-        self.arr[id2].rect.h = one.h;
-
-        self.arr[id1].mesh = graphics::Mesh::new_rectangle(
-            ctx,
-            graphics::DrawMode::fill(),
-            graphics::Rect::new(one.x, one.y, one.w, two.h),
-            // self.arr[i + 1].state.get_color(),
-            Color::GREEN,
-        )
-        .unwrap();
-
-        self.arr[id2].mesh = graphics::Mesh::new_rectangle(
-            ctx,
-            graphics::DrawMode::fill(),
-            graphics::Rect::new(two.x, two.y, two.w, one.h),
-            self.arr[id1].state.get_color(),
-        )
-        .unwrap();
-    }
-
     fn get_arr(&mut self) -> &mut Vec<SortElement> {
         &mut self.arr
     }
