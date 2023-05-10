@@ -2,12 +2,13 @@ use clap::{Parser, ValueEnum};
 use ggez::glam::Vec2;
 use ggez::graphics::{self, Color, Rect};
 use ggez::{event, Context, GameResult};
-use sorting::{BubbleSort, InsertionSort, Sorter, INIT_WINDOW_SIZE};
+use sorting::{BubbleSort, InsertionSort, SelectionSort, Sorter, INIT_WINDOW_SIZE};
 
 #[derive(Clone, ValueEnum)]
 enum SortingAlgorithms {
     Bubblesort,
     Insertionsort,
+    Selectionsort,
 }
 
 #[derive(Parser)]
@@ -133,6 +134,9 @@ pub fn main() -> GameResult {
         }
         SortingAlgorithms::Insertionsort => {
             Box::new(InsertionSort::new(&mut ctx, args.max_val, args.no_rects))
+        }
+        SortingAlgorithms::Selectionsort => {
+            Box::new(SelectionSort::new(&mut ctx, args.max_val, args.no_rects))
         }
     };
 
