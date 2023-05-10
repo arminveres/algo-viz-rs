@@ -34,7 +34,7 @@ pub fn swap_mesh(sortelems: &mut Vec<SortElement>, ctx: &Context, old_id: usize,
         ctx,
         graphics::DrawMode::fill(),
         graphics::Rect::new(0.0, 0.0, old_rect.w, new_rect.h),
-        Color::WHITE, // self.arr[i + 1].state.get_color(),
+        Color::RED, // self.arr[i + 1].state.get_color(),
     )
     .unwrap();
 
@@ -42,7 +42,7 @@ pub fn swap_mesh(sortelems: &mut Vec<SortElement>, ctx: &Context, old_id: usize,
         ctx,
         graphics::DrawMode::fill(),
         graphics::Rect::new(0.0, 0.0, new_rect.w, old_rect.h),
-        Color::RED, // self.arr[id1].state.get_color(),
+        Color::WHITE, // self.arr[id1].state.get_color(),
     )
     .unwrap();
 }
