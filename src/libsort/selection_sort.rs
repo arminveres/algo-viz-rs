@@ -1,4 +1,4 @@
-use super::{sorter::swap_mesh, SortElement, Sorter};
+use super::{SortElement, SortState, Sorter};
 use ggez::Context;
 use rand::{self, Rng};
 
@@ -28,6 +28,19 @@ impl SelectionSort {
             smallest: 0,
         }
     }
+    fn swap_mesh(&mut self, old_id: usize, new_id: usize) {
+        let old_rect = self.arr[old_id].rect;
+        let new_rect = self.arr[new_id].rect;
+        self.arr[old_id].rect.h = new_rect.h;
+        self.arr[new_id].rect.h = old_rect.h;
+
+        // Thee coordinates of the rectangles, or all forms, be it circles, are relative, which is why
+        // we use (0.0, 0.0) as x and y. The coordinates add up otherwise and will be outside of the
+        // canvas onto which we are drawing
+
+        self.arr[old_id].sort_state = SortState::SELECTED;
+        self.arr[new_id].sort_state = SortState::UNSORTED;
+    }
 }
 
 impl Sorter for SelectionSort {
@@ -38,11 +51,14 @@ impl Sorter for SelectionSort {
         }
         self.smallest = self.left;
         for right in (self.left + 1)..self.arr.len() {
+            // NOTE: important to reset sorting state for each bar, otherwise it stays red.
+            self.arr[right].sort_state = SortState::UNSORTED;
             if self.arr[right].get_sort_value() < self.arr[self.smallest].get_sort_value() {
                 self.smallest = right;
             }
         }
-        swap_mesh(&mut self.arr, ctx, self.smallest, self.left);
+        self.swap_mesh(self.smallest, self.left);
+        self.arr[self.left].sort_state = SortState::SORTED;
         self.left += 1;
     }
 

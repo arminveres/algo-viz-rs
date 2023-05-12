@@ -1,9 +1,5 @@
-use ggez::{
-    graphics::{self, Color},
-    Context,
-};
-
-use super::SortElement;
+use super::{sort_element::SortState, SortElement};
+use ggez::{graphics, Context};
 
 /// Common step interface for sorting algorithms
 pub trait Sorter {
@@ -30,19 +26,27 @@ pub fn swap_mesh(sortelems: &mut Vec<SortElement>, ctx: &Context, old_id: usize,
     // we use (0.0, 0.0) as x and y. The coordinates add up otherwise and will be outside of the
     // canvas onto which we are drawing
 
-    sortelems[old_id].mesh = graphics::Mesh::new_rectangle(
-        ctx,
-        graphics::DrawMode::fill(),
-        graphics::Rect::new(0.0, 0.0, old_rect.w, new_rect.h),
-        Color::RED, // self.arr[i + 1].state.get_color(),
-    )
-    .unwrap();
+    // NOTE: (aver) swap for selection sort
 
-    sortelems[new_id].mesh = graphics::Mesh::new_rectangle(
-        ctx,
-        graphics::DrawMode::fill(),
-        graphics::Rect::new(0.0, 0.0, new_rect.w, old_rect.h),
-        Color::WHITE, // self.arr[id1].state.get_color(),
-    )
-    .unwrap();
+    // sortelems[old_id].sort_state = SortState::SELECTED;
+    sortelems[old_id].sort_state = SortState::UNSORTED;
+
+    // sortelems[old_id].mesh = graphics::Mesh::new_rectangle(
+    //     ctx,
+    //     graphics::DrawMode::fill(),
+    //     graphics::Rect::new(0.0, 0.0, old_rect.w, new_rect.h),
+    //     sortelems[old_id].sort_state.get_color(), // self.arr[i + 1].state.get_color(),
+    // )
+    // .unwrap();
+
+    // sortelems[new_id].sort_state = SortState::UNSORTED;
+    sortelems[new_id].sort_state = SortState::SELECTED;
+
+    // sortelems[new_id].mesh = graphics::Mesh::new_rectangle(
+    //     ctx,
+    //     graphics::DrawMode::fill(),
+    //     graphics::Rect::new(0.0, 0.0, new_rect.w, old_rect.h),
+    //     sortelems[new_id].sort_state.get_color(), // self.arr[id1].state.get_color(),
+    // )
+    // .unwrap();
 }

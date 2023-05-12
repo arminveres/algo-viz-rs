@@ -6,7 +6,7 @@ use ggez::{
 
 use crate::INIT_WINDOW_SIZE;
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub enum SortState {
     #[default]
     UNSORTED,
@@ -35,6 +35,7 @@ pub struct SortElement {
     pub rect: graphics::Rect,
     // FIXME: implement color change, currently it looks like we would have to replace the mesh with a
     // new one, that has the updated color.
+    pub sort_state: SortState,
 }
 
 impl SortElement {
@@ -72,6 +73,7 @@ impl SortElement {
         Ok(Self {
             mesh: l_object,
             rect: l_rectangle,
+            sort_state: l_state,
         })
     }
 

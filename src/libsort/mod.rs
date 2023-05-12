@@ -12,5 +12,7 @@ pub use self::selection_sort::SelectionSort;
 pub use self::sort_element::SortElement;
 pub use self::sorter::Sorter;
 
+use self::sort_element::SortState;
+
 /// Important constants, also used for scaling the animation
 pub const INIT_WINDOW_SIZE: (f32, f32) = (800., 600.);

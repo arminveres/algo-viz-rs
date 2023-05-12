@@ -101,7 +101,7 @@ impl event::EventHandler<ggez::GameError> for GameState {
                 ctx,
                 graphics::DrawMode::fill(),
                 graphics::Rect::new(0.0, 0.0, old_rect.w, old_rect.h),
-                Color::WHITE,
+                elem.sort_state.get_color(),
             )
             .unwrap();
         }

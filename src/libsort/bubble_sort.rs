@@ -1,4 +1,4 @@
-use super::{sorter::swap_mesh, SortElement, Sorter};
+use super::{sort_element::SortState, SortElement, Sorter};
 use ggez::Context;
 use rand::{self, Rng};
 
@@ -28,6 +28,20 @@ impl BubbleSort {
             inner_index: 0,
         }
     }
+
+    fn swap_mesh(&mut self, old_id: usize, new_id: usize) {
+        let old_rect = self.arr[old_id].rect;
+        let new_rect = self.arr[new_id].rect;
+        self.arr[old_id].rect.h = new_rect.h;
+        self.arr[new_id].rect.h = old_rect.h;
+
+        // Thee coordinates of the rectangles, or all forms, be it circles, are relative, which is why
+        // we use (0.0, 0.0) as x and y. The coordinates add up otherwise and will be outside of the
+        // canvas onto which we are drawing
+
+        self.arr[old_id].sort_state = SortState::UNSORTED;
+        self.arr[new_id].sort_state = SortState::SELECTED;
+    }
 }
 
 impl Sorter for BubbleSort {
@@ -38,9 +52,11 @@ impl Sorter for BubbleSort {
             self.sorted = true;
         }
         for i in self.inner_index..(self.outer_index - 1) {
+            // NOTE: important to reset sorting state for each bar, otherwise it stays red.
+            self.arr[i].sort_state = SortState::UNSORTED;
             if self.arr[i].get_sort_value() > self.arr[i + 1].get_sort_value() {
                 self.sorted = false; // if we meet another value, we obviously are unsorted
-                swap_mesh(&mut self.arr, ctx, i, i + 1);
+                self.swap_mesh(i, i + 1);
                 if i < self.outer_index - 1 {
                     self.inner_index = i;
                 } else {
@@ -51,6 +67,8 @@ impl Sorter for BubbleSort {
             }
         }
         self.outer_index -= 1;
+        // the last bar is already sorted so indicate that
+        self.arr[self.outer_index].sort_state = SortState::SORTED;
         self.inner_index = 0;
         return;
     }
