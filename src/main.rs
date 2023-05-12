@@ -1,13 +1,14 @@
 use clap::{Parser, ValueEnum};
 use ggez::glam::Vec2;
-use ggez::graphics::{self, Color, Rect};
+use ggez::graphics::{self, Rect};
 use ggez::{event, Context, GameResult};
-use sorting::{BubbleSort, InsertionSort, Sorter, INIT_WINDOW_SIZE};
+use sorting::{BubbleSort, InsertionSort, SelectionSort, Sorter, INIT_WINDOW_SIZE};
 
 #[derive(Clone, ValueEnum)]
 enum SortingAlgorithms {
     Bubblesort,
     Insertionsort,
+    Selectionsort,
 }
 
 #[derive(Parser)]
@@ -17,7 +18,7 @@ struct CLIArgs {
     #[arg(short, long, default_value_t = 150)]
     no_rects: u32,
     #[arg(short, long, default_value_t = 10)]
-    fps: u32,
+    steps_per_second: u32,
     #[arg(value_enum, default_value_t = SortingAlgorithms::Bubblesort)]
     sorting_algo: SortingAlgorithms,
 }
@@ -62,7 +63,7 @@ impl event::EventHandler<ggez::GameError> for GameState {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
         while ctx.time.check_update_time(self.desired_fps) {
             if !self.sorter.is_sorted() {
-                self.sorter.step(ctx);
+                self.sorter.step();
             } else {
                 println!("it's sorted!");
             }
@@ -86,6 +87,10 @@ impl event::EventHandler<ggez::GameError> for GameState {
             canvas.draw(&obj.mesh, Vec2::new(obj.rect.x, INIT_WINDOW_SIZE.1));
         }
 
+        // Add name of sorting algorithm in top left corner
+        let text = graphics::Text::new(self.sorter.get_name());
+        canvas.draw(&text, Vec2::new(0., 0.));
+
         canvas.finish(ctx)?;
 
         // Update all underlying meshes once again after drawing, since some bars stay red, even
@@ -96,7 +101,7 @@ impl event::EventHandler<ggez::GameError> for GameState {
                 ctx,
                 graphics::DrawMode::fill(),
                 graphics::Rect::new(0.0, 0.0, old_rect.w, old_rect.h),
-                Color::WHITE,
+                elem.sort_state.get_color(),
             )
             .unwrap();
         }
@@ -130,9 +135,12 @@ pub fn main() -> GameResult {
         SortingAlgorithms::Insertionsort => {
             Box::new(InsertionSort::new(&mut ctx, args.max_val, args.no_rects))
         }
+        SortingAlgorithms::Selectionsort => {
+            Box::new(SelectionSort::new(&mut ctx, args.max_val, args.no_rects))
+        }
     };
 
-    let state = GameState::new(sorter, &mut ctx, args.fps)?;
+    let state = GameState::new(sorter, &mut ctx, args.steps_per_second)?;
 
     event::run(ctx, event_loop, state)
 }

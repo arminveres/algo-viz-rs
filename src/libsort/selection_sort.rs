@@ -1,18 +1,18 @@
-use super::{sort_element::SortState, SortElement, Sorter};
+use super::{SortElement, SortState, Sorter};
 use ggez::Context;
 use rand::{self, Rng};
 
-/// Implements the Bubblesort algorithms
+/// Implements the Selectionsort algorithms
 ///
 /// The struct contains various variables that keep track of each step.
-pub struct BubbleSort {
+pub struct SelectionSort {
     arr: Vec<SortElement>,
     sorted: bool,
-    outer_index: usize,
-    inner_index: usize,
+    left: usize,
+    smallest: usize,
 }
 
-impl BubbleSort {
+impl SelectionSort {
     pub fn new(ctx: &mut Context, max_value: f32, no_rects: u32) -> Self {
         let mut sort_elems = vec![];
         let mut rng = rand::thread_rng();
@@ -24,8 +24,8 @@ impl BubbleSort {
         Self {
             sorted: false,
             arr: sort_elems,
-            outer_index: no_rects as usize,
-            inner_index: 0,
+            left: 0,
+            smallest: 0,
         }
     }
 
@@ -39,49 +39,38 @@ impl BubbleSort {
         // we use (0.0, 0.0) as x and y. The coordinates add up otherwise and will be outside of the
         // canvas onto which we are drawing
 
-        self.arr[old_id].sort_state = SortState::UNSORTED;
-        self.arr[new_id].sort_state = SortState::SELECTED;
+        self.arr[old_id].sort_state = SortState::SELECTED;
+        self.arr[new_id].sort_state = SortState::UNSORTED;
     }
 }
 
-impl Sorter for BubbleSort {
+impl Sorter for SelectionSort {
     fn step(&mut self) {
-        // currently if there is not step left between inner and outer index, the step will be
-        // empty
-        if self.inner_index == 0 {
+        if self.left == self.arr.len() {
             self.sorted = true;
+            return;
         }
-        for i in self.inner_index..(self.outer_index - 1) {
+        self.smallest = self.left;
+        for right in (self.left + 1)..self.arr.len() {
             // NOTE: important to reset sorting state for each bar, otherwise it stays red.
-            self.arr[i].sort_state = SortState::UNSORTED;
-            if self.arr[i].get_sort_value() > self.arr[i + 1].get_sort_value() {
-                self.sorted = false; // if we meet another value, we obviously are unsorted
-                self.swap_rects(i, i + 1);
-                if i < self.outer_index - 1 {
-                    self.inner_index = i;
-                } else {
-                    self.outer_index -= 1;
-                    self.inner_index = 0;
-                }
-                return;
+            self.arr[right].sort_state = SortState::UNSORTED;
+            if self.arr[right].get_sort_value() < self.arr[self.smallest].get_sort_value() {
+                self.smallest = right;
             }
         }
-        self.outer_index -= 1;
-        // the last bar is already sorted so indicate that
-        self.arr[self.outer_index].sort_state = SortState::SORTED;
-        self.inner_index = 0;
-        return;
+        self.swap_rects(self.smallest, self.left);
+        self.arr[self.left].sort_state = SortState::SORTED;
+        self.left += 1;
     }
 
     fn get_arr(&mut self) -> &mut Vec<SortElement> {
         &mut self.arr
     }
-
     fn is_sorted(&self) -> bool {
         self.sorted
     }
 
     fn get_name(&self) -> &str {
-        "Bubblesort"
+        "Selectionsort"
     }
 }

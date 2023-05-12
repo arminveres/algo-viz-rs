@@ -6,7 +6,7 @@ use ggez::{
 
 use crate::INIT_WINDOW_SIZE;
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub enum SortState {
     #[default]
     UNSORTED,
@@ -25,13 +25,17 @@ impl SortState {
 }
 
 #[derive(Clone)]
-// TODO: implement color change, currently it looks like we would have to replace the mesh with a
-// new one, that has the updated color.
+/// Contains `mesh` and `rect` which mainly represents the bars drawn and also the coordinates
+/// Gets sorted as a whole.
 pub struct SortElement {
     /// Mesh that gets drawn
     pub mesh: graphics::Mesh,
     /// Part that will get sorted
+    /// NOTE: use zero coordinates, otherwise the position will get added to the mesh as well
     pub rect: graphics::Rect,
+    // FIXME: implement color change, currently it looks like we would have to replace the mesh with a
+    // new one, that has the updated color.
+    pub sort_state: SortState,
 }
 
 impl SortElement {
@@ -53,7 +57,7 @@ impl SortElement {
 
         // we need to reverse the height, since origin is at top left
         let l_rectangle = graphics::Rect::new(
-            X_OFFSET * x_scale + (i as f32) * WIDTH * x_scale,
+            X_OFFSET * x_scale * (i as f32),
             0.,
             10. * x_scale,
             -elem_value * y_scale,
@@ -69,6 +73,7 @@ impl SortElement {
         Ok(Self {
             mesh: l_object,
             rect: l_rectangle,
+            sort_state: l_state,
         })
     }
 
