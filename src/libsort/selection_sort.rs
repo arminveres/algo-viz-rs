@@ -1,6 +1,7 @@
 use super::{SortElement, SortState, Sorter};
 use ggez::Context;
 use rand::{self, Rng};
+use std::sync::mpsc;
 
 /// Implements the Selectionsort algorithms
 ///
@@ -11,10 +12,11 @@ pub struct SelectionSort {
     do_check: bool,
     left: usize,
     smallest: usize,
+    tx: mpsc::Sender<f32>,
 }
 
 impl SelectionSort {
-    pub fn new(ctx: &mut Context, max_value: f32, no_rects: u32) -> Self {
+    pub fn new(ctx: &mut Context, max_value: f32, no_rects: u32, tx: mpsc::Sender<f32>) -> Self {
         let mut sort_elems = vec![];
         let mut rng = rand::thread_rng();
         for i in 0..no_rects {
@@ -28,6 +30,7 @@ impl SelectionSort {
             arr: sort_elems,
             left: 0,
             smallest: 0,
+            tx,
         }
     }
 
@@ -42,6 +45,7 @@ impl SelectionSort {
         // canvas onto which we are drawing
 
         self.arr[old_id].sort_state = SortState::SELECTED;
+        self.tx.send(self.arr[new_id].get_sort_value()).unwrap();
         self.arr[new_id].sort_state = SortState::UNSORTED;
     }
 }
@@ -86,6 +90,9 @@ impl Sorter for SelectionSort {
     fn check_step(&mut self) {
         if self.arr[self.smallest].get_sort_value() <= self.arr[self.smallest + 1].get_sort_value()
         {
+            self.tx
+                .send(self.arr[self.smallest].get_sort_value())
+                .unwrap();
             self.arr[self.smallest].sort_state = SortState::SORTED;
             self.smallest += 1;
             if self.smallest >= self.arr.len() - 1 {

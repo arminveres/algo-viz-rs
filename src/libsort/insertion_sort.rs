@@ -1,6 +1,7 @@
 use super::{SortElement, SortState, Sorter};
 use ggez::Context;
 use rand::{self, Rng};
+use std::sync::mpsc;
 
 /// Implements the Insertionsort algorithms
 ///
@@ -12,10 +13,11 @@ pub struct InsertionSort {
     inner_index: usize,
     curr_clone: SortElement,
     do_check: bool,
+    tx: mpsc::Sender<f32>,
 }
 
 impl InsertionSort {
-    pub fn new(ctx: &mut Context, max_value: f32, no_rects: u32) -> Self {
+    pub fn new(ctx: &mut Context, max_value: f32, no_rects: u32, tx: mpsc::Sender<f32>) -> Self {
         let mut sort_elems = vec![];
         let mut rng = rand::thread_rng();
         for i in 0..no_rects {
@@ -31,12 +33,14 @@ impl InsertionSort {
             inner_index: 1,
             curr_clone: init_elem,
             do_check: false,
+            tx,
         }
     }
 
     /// Copies the rectangles and height of the `from_elem` to the `SortElement` at `to_id` in `self.arr`
     /// and updates `SortState`
     fn copy_rects(&mut self, to_id: usize, from_elem: SortElement) {
+        self.tx.send(self.arr[to_id].get_sort_value()).unwrap();
         let sortelems = &mut self.arr;
         let old_rect = from_elem.rect;
         sortelems[to_id].rect.h = old_rect.h;
@@ -94,6 +98,9 @@ impl Sorter for InsertionSort {
         if self.arr[self.inner_index].get_sort_value()
             <= self.arr[self.inner_index + 1].get_sort_value()
         {
+            self.tx
+                .send(self.arr[self.inner_index].get_sort_value())
+                .unwrap();
             self.arr[self.inner_index].sort_state = SortState::SORTED;
             self.inner_index += 1;
             if self.inner_index >= self.arr.len() - 1 {

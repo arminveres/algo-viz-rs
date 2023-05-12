@@ -1,6 +1,7 @@
 use super::{sort_element::SortState, SortElement, Sorter};
 use ggez::Context;
 use rand::{self, Rng};
+use std::sync::mpsc;
 
 /// Implements the Bubblesort algorithms
 ///
@@ -12,10 +13,11 @@ pub struct BubbleSort {
     /// Inner loop index, later also used to check if sorted
     inner_index: usize,
     do_check: bool,
+    tx: mpsc::Sender<f32>,
 }
 
 impl BubbleSort {
-    pub fn new(ctx: &mut Context, max_value: f32, no_rects: u32) -> Self {
+    pub fn new(ctx: &mut Context, max_value: f32, no_rects: u32, tx: mpsc::Sender<f32>) -> Self {
         let mut sort_elems = vec![];
         let mut rng = rand::thread_rng();
         for i in 0..no_rects {
@@ -29,6 +31,7 @@ impl BubbleSort {
             outer_index: no_rects as usize,
             inner_index: 0,
             do_check: false,
+            tx,
         }
     }
 
@@ -42,7 +45,9 @@ impl BubbleSort {
         // we use (0.0, 0.0) as x and y. The coordinates add up otherwise and will be outside of the
         // canvas onto which we are drawing
 
+        self.tx.send(self.arr[old_id].get_sort_value()).unwrap();
         self.arr[old_id].sort_state = SortState::UNSORTED;
+        // self.tx.send(self.arr[new_id].get_sort_value()).unwrap();
         self.arr[new_id].sort_state = SortState::SELECTED;
     }
 }
@@ -75,6 +80,9 @@ impl Sorter for BubbleSort {
         }
         self.outer_index -= 1;
         // the last bar is already sorted so indicate that
+        // self.tx
+        //     .send(self.arr[self.outer_index].get_sort_value())
+        //     .unwrap();
         self.arr[self.outer_index].sort_state = SortState::SORTED;
         self.inner_index = 0;
         return;
@@ -100,6 +108,9 @@ impl Sorter for BubbleSort {
         if self.arr[self.inner_index].get_sort_value()
             <= self.arr[self.inner_index + 1].get_sort_value()
         {
+            self.tx
+                .send(self.arr[self.inner_index].get_sort_value())
+                .unwrap();
             self.arr[self.inner_index].sort_state = SortState::SORTED;
             self.inner_index += 1;
             if self.inner_index >= self.arr.len() - 1 {

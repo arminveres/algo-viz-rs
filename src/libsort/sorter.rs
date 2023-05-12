@@ -21,3 +21,4 @@ pub trait Sorter {
     fn do_check(&self) -> bool;
     fn check_step(&mut self);
 }
+// TODO: (aver) add function to go through all elements and check if sorted
