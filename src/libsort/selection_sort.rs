@@ -28,7 +28,8 @@ impl SelectionSort {
             smallest: 0,
         }
     }
-    fn swap_mesh(&mut self, old_id: usize, new_id: usize) {
+
+    fn swap_rects(&mut self, old_id: usize, new_id: usize) {
         let old_rect = self.arr[old_id].rect;
         let new_rect = self.arr[new_id].rect;
         self.arr[old_id].rect.h = new_rect.h;
@@ -44,7 +45,7 @@ impl SelectionSort {
 }
 
 impl Sorter for SelectionSort {
-    fn step(&mut self, ctx: &Context) {
+    fn step(&mut self) {
         if self.left == self.arr.len() {
             self.sorted = true;
             return;
@@ -57,7 +58,7 @@ impl Sorter for SelectionSort {
                 self.smallest = right;
             }
         }
-        self.swap_mesh(self.smallest, self.left);
+        self.swap_rects(self.smallest, self.left);
         self.arr[self.left].sort_state = SortState::SORTED;
         self.left += 1;
     }

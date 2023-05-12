@@ -29,7 +29,7 @@ impl BubbleSort {
         }
     }
 
-    fn swap_mesh(&mut self, old_id: usize, new_id: usize) {
+    fn swap_rects(&mut self, old_id: usize, new_id: usize) {
         let old_rect = self.arr[old_id].rect;
         let new_rect = self.arr[new_id].rect;
         self.arr[old_id].rect.h = new_rect.h;
@@ -45,7 +45,7 @@ impl BubbleSort {
 }
 
 impl Sorter for BubbleSort {
-    fn step(&mut self, ctx: &Context) {
+    fn step(&mut self) {
         // currently if there is not step left between inner and outer index, the step will be
         // empty
         if self.inner_index == 0 {
@@ -56,7 +56,7 @@ impl Sorter for BubbleSort {
             self.arr[i].sort_state = SortState::UNSORTED;
             if self.arr[i].get_sort_value() > self.arr[i + 1].get_sort_value() {
                 self.sorted = false; // if we meet another value, we obviously are unsorted
-                self.swap_mesh(i, i + 1);
+                self.swap_rects(i, i + 1);
                 if i < self.outer_index - 1 {
                     self.inner_index = i;
                 } else {

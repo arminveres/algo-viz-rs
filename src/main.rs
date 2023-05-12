@@ -1,6 +1,6 @@
 use clap::{Parser, ValueEnum};
 use ggez::glam::Vec2;
-use ggez::graphics::{self, Color, Rect};
+use ggez::graphics::{self, Rect};
 use ggez::{event, Context, GameResult};
 use sorting::{BubbleSort, InsertionSort, SelectionSort, Sorter, INIT_WINDOW_SIZE};
 
@@ -18,7 +18,7 @@ struct CLIArgs {
     #[arg(short, long, default_value_t = 150)]
     no_rects: u32,
     #[arg(short, long, default_value_t = 10)]
-    fps: u32,
+    steps_per_second: u32,
     #[arg(value_enum, default_value_t = SortingAlgorithms::Bubblesort)]
     sorting_algo: SortingAlgorithms,
 }
@@ -63,7 +63,7 @@ impl event::EventHandler<ggez::GameError> for GameState {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
         while ctx.time.check_update_time(self.desired_fps) {
             if !self.sorter.is_sorted() {
-                self.sorter.step(ctx);
+                self.sorter.step();
             } else {
                 println!("it's sorted!");
             }
@@ -140,7 +140,7 @@ pub fn main() -> GameResult {
         }
     };
 
-    let state = GameState::new(sorter, &mut ctx, args.fps)?;
+    let state = GameState::new(sorter, &mut ctx, args.steps_per_second)?;
 
     event::run(ctx, event_loop, state)
 }

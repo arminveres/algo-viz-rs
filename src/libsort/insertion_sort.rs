@@ -32,8 +32,9 @@ impl InsertionSort {
         }
     }
 
-    /// Copies the mesh and height of the `from_elem` to the `SortElement` at `to_id` in `self.arr`
-    fn copy_mesh(&mut self, to_id: usize, from_elem: SortElement) {
+    /// Copies the rectangles and height of the `from_elem` to the `SortElement` at `to_id` in `self.arr`
+    /// and updates `SortState`
+    fn copy_rects(&mut self, to_id: usize, from_elem: SortElement) {
         let sortelems = &mut self.arr;
         let old_rect = from_elem.rect;
         sortelems[to_id].rect.h = old_rect.h;
@@ -42,7 +43,7 @@ impl InsertionSort {
 }
 
 impl Sorter for InsertionSort {
-    fn step(&mut self, ctx: &Context) {
+    fn step(&mut self) {
         if self.outer_index >= self.arr.len() {
             self.sorted = true;
             return;
@@ -51,11 +52,11 @@ impl Sorter for InsertionSort {
         if self.inner_index > 0
             && self.curr_clone.get_sort_value() < self.arr[self.inner_index - 1].get_sort_value()
         {
-            self.copy_mesh(self.inner_index, self.arr[self.inner_index - 1].clone());
+            self.copy_rects(self.inner_index, self.arr[self.inner_index - 1].clone());
             self.inner_index -= 1;
             self.arr[self.inner_index].sort_state = SortState::SELECTED;
         } else {
-            self.copy_mesh(self.inner_index, self.curr_clone.clone());
+            self.copy_rects(self.inner_index, self.curr_clone.clone());
             self.outer_index += 1;
             self.inner_index = self.outer_index;
             if self.outer_index < self.arr.len() {
