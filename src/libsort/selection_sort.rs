@@ -84,11 +84,15 @@ impl Sorter for SelectionSort {
     }
 
     fn check_step(&mut self) {
-        self.arr[self.smallest].sort_state = SortState::SORTED;
-        self.smallest += 1;
-        if self.smallest >= self.arr.len() {
-            self.do_check = false;
-            println!("Bars are sorted!");
+        if self.arr[self.smallest].get_sort_value() <= self.arr[self.smallest + 1].get_sort_value()
+        {
+            self.arr[self.smallest].sort_state = SortState::SORTED;
+            self.smallest += 1;
+            if self.smallest >= self.arr.len() - 1 {
+                self.arr[self.smallest].sort_state = SortState::SORTED;
+                self.do_check = false;
+                println!("Bars are sorted!");
+            }
         }
     }
 }

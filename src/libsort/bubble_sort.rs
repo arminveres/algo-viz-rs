@@ -9,6 +9,7 @@ pub struct BubbleSort {
     arr: Vec<SortElement>,
     sorted: bool,
     outer_index: usize,
+    /// Inner loop index, later also used to check if sorted
     inner_index: usize,
     do_check: bool,
 }
@@ -96,11 +97,16 @@ impl Sorter for BubbleSort {
     }
 
     fn check_step(&mut self) {
-        self.arr[self.inner_index].sort_state = SortState::SORTED;
-        self.inner_index += 1;
-        if self.inner_index >= self.arr.len() {
-            self.do_check = false;
-            println!("Bars are sorted!");
+        if self.arr[self.inner_index].get_sort_value()
+            <= self.arr[self.inner_index + 1].get_sort_value()
+        {
+            self.arr[self.inner_index].sort_state = SortState::SORTED;
+            self.inner_index += 1;
+            if self.inner_index >= self.arr.len() - 1 {
+                self.arr[self.inner_index].sort_state = SortState::SORTED;
+                self.do_check = false;
+                println!("Bars are sorted!");
+            }
         }
     }
 }
