@@ -8,6 +8,7 @@ use rand::{self, Rng};
 pub struct SelectionSort {
     arr: Vec<SortElement>,
     sorted: bool,
+    do_check: bool,
     left: usize,
     smallest: usize,
 }
@@ -23,6 +24,7 @@ impl SelectionSort {
         }
         Self {
             sorted: false,
+            do_check: false,
             arr: sort_elems,
             left: 0,
             smallest: 0,
@@ -48,6 +50,9 @@ impl Sorter for SelectionSort {
     fn step(&mut self) {
         if self.left == self.arr.len() {
             self.sorted = true;
+            self.smallest = 0;
+            self.do_check = true;
+            self.reset_states();
             return;
         }
         self.smallest = self.left;
@@ -72,5 +77,18 @@ impl Sorter for SelectionSort {
 
     fn get_name(&self) -> &str {
         "Selectionsort"
+    }
+
+    fn do_check(&self) -> bool {
+        return self.do_check;
+    }
+
+    fn check_step(&mut self) {
+        self.arr[self.smallest].sort_state = SortState::SORTED;
+        self.smallest += 1;
+        if self.smallest >= self.arr.len() {
+            self.do_check = false;
+            println!("Bars are sorted!");
+        }
     }
 }

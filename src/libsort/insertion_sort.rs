@@ -11,6 +11,7 @@ pub struct InsertionSort {
     outer_index: usize,
     inner_index: usize,
     curr_clone: SortElement,
+    do_check: bool,
 }
 
 impl InsertionSort {
@@ -29,6 +30,7 @@ impl InsertionSort {
             outer_index: 1,
             inner_index: 1,
             curr_clone: init_elem,
+            do_check: false,
         }
     }
 
@@ -46,6 +48,9 @@ impl Sorter for InsertionSort {
     fn step(&mut self) {
         if self.outer_index >= self.arr.len() {
             self.sorted = true;
+            self.do_check = true;
+            self.inner_index = 0;
+            self.reset_states();
             return;
         }
 
@@ -79,5 +84,18 @@ impl Sorter for InsertionSort {
 
     fn get_name(&self) -> &str {
         "Insertionsort"
+    }
+
+    fn do_check(&self) -> bool {
+        return self.do_check;
+    }
+
+    fn check_step(&mut self) {
+        self.arr[self.inner_index].sort_state = SortState::SORTED;
+        self.inner_index += 1;
+        if self.inner_index >= self.arr.len() {
+            self.do_check = false;
+            println!("Bars are sorted!");
+        }
     }
 }
