@@ -1,4 +1,4 @@
-use super::SortElement;
+use super::{sort_element::SortState, SortElement};
 
 /// Common step interface for sorting algorithms
 pub trait Sorter {
@@ -12,4 +12,12 @@ pub trait Sorter {
     fn is_sorted(&self) -> bool;
     /// Returns the name of the current sorting algorithm
     fn get_name(&self) -> &str;
+    /// Resets the colors
+    fn reset_states(&mut self) {
+        for elem in self.get_arr() {
+            elem.sort_state = SortState::UNSORTED;
+        }
+    }
+    fn do_check(&self) -> bool;
+    fn check_step(&mut self);
 }

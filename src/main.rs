@@ -61,17 +61,20 @@ impl GameState {
 
 impl event::EventHandler<ggez::GameError> for GameState {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
-        while ctx.time.check_update_time(self.desired_fps) {
-            if !self.sorter.is_sorted() {
+        if self.sorter.do_check() && self.sorter.is_sorted() {
+            self.sorter.check_step();
+        } else if !self.sorter.do_check() && !self.sorter.is_sorted() {
+            // only update in given steps per second
+            while ctx.time.check_update_time(self.desired_fps) {
                 self.sorter.step();
-            } else {
-                println!("it's sorted!");
             }
         }
+
         self.frames += 1;
         if (self.frames % 100) == 0 {
             println!("FPS: {}", ctx.time.fps());
         }
+
         Ok(())
     }
 

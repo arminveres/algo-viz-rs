@@ -9,7 +9,9 @@ pub struct BubbleSort {
     arr: Vec<SortElement>,
     sorted: bool,
     outer_index: usize,
+    /// Inner loop index, later also used to check if sorted
     inner_index: usize,
+    do_check: bool,
 }
 
 impl BubbleSort {
@@ -26,6 +28,7 @@ impl BubbleSort {
             arr: sort_elems,
             outer_index: no_rects as usize,
             inner_index: 0,
+            do_check: false,
         }
     }
 
@@ -48,8 +51,12 @@ impl Sorter for BubbleSort {
     fn step(&mut self) {
         // currently if there is not step left between inner and outer index, the step will be
         // empty
-        if self.inner_index == 0 {
+        if self.outer_index == 0 {
             self.sorted = true;
+            self.do_check = true;
+            self.inner_index = 0;
+            self.reset_states();
+            return;
         }
         for i in self.inner_index..(self.outer_index - 1) {
             // NOTE: important to reset sorting state for each bar, otherwise it stays red.
@@ -83,5 +90,23 @@ impl Sorter for BubbleSort {
 
     fn get_name(&self) -> &str {
         "Bubblesort"
+    }
+
+    fn do_check(&self) -> bool {
+        return self.do_check;
+    }
+
+    fn check_step(&mut self) {
+        if self.arr[self.inner_index].get_sort_value()
+            <= self.arr[self.inner_index + 1].get_sort_value()
+        {
+            self.arr[self.inner_index].sort_state = SortState::SORTED;
+            self.inner_index += 1;
+            if self.inner_index >= self.arr.len() - 1 {
+                self.arr[self.inner_index].sort_state = SortState::SORTED;
+                self.do_check = false;
+                println!("Bars are sorted!");
+            }
+        }
     }
 }
