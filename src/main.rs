@@ -37,9 +37,12 @@ struct GameState {
     frames: usize,
     window_settings: WindowSettings,
     screen_coords: Rect,
-    sorter: Box<dyn Sorter>,
     /// Alias to steps per second
     target_fps: u32,
+    /// Dynamically dispatched struct that implements the sorter trait.
+    ///
+    /// This contains our individual algorithms
+    sorter: Box<dyn Sorter>,
 }
 
 impl GameState {
@@ -66,6 +69,7 @@ impl GameState {
     }
 }
 
+// Implement GGEZ specific trains for our gamestate
 impl event::EventHandler<ggez::GameError> for GameState {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
         // Only draw after timeout for fps

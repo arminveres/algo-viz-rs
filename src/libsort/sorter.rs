@@ -1,10 +1,6 @@
-use std::{sync::mpsc, thread, time};
-
+use super::{sort_element::SortState, SortElement, AUDIO_RANGE_HZ};
 use rodio::{source::SineWave, OutputStream, Sink, Source};
-
-use crate::AUDIO_RANGE_HZ;
-
-use super::{sort_element::SortState, SortElement};
+use std::{sync::mpsc, thread, time};
 
 /// Common step interface for sorting algorithms
 pub trait Sorter {
@@ -18,14 +14,16 @@ pub trait Sorter {
     fn is_sorted(&self) -> bool;
     /// Returns the name of the current sorting algorithm
     fn get_name(&self) -> &str;
-    /// Resets the colors
+    /// Returns whether a final check of all bars should be done
+    fn do_check(&self) -> bool;
+    /// Does one step in the final check of the bars
+    fn check_step(&mut self);
+    /// Resets the SortState aka. colors
     fn reset_states(&mut self) {
         for elem in self.get_arr() {
             elem.sort_state = SortState::UNSORTED;
         }
     }
-    fn do_check(&self) -> bool;
-    fn check_step(&mut self);
 }
 
 /// Starts a separate audio thread and sets up sound output using rodio
