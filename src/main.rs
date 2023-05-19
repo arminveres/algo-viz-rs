@@ -5,8 +5,10 @@ use ggez::{
     graphics::{self, Rect},
     Context, GameResult,
 };
-use sorting::{BubbleSort, InsertionSort, SelectionSort, Sorter, INIT_WINDOW_SIZE};
-use std::{sync::mpsc, thread, time};
+use sorting::{
+    start_audio_thread, BubbleSort, InsertionSort, SelectionSort, Sorter, INIT_WINDOW_SIZE,
+};
+use std::sync::mpsc;
 
 #[derive(Clone, ValueEnum)]
 enum SortingAlgorithms {
@@ -36,7 +38,8 @@ struct GameState {
     window_settings: WindowSettings,
     screen_coords: Rect,
     sorter: Box<dyn Sorter>,
-    desired_fps: u32,
+    /// Alias to steps per second
+    target_fps: u32,
 }
 
 impl GameState {
@@ -57,7 +60,7 @@ impl GameState {
                 h: ctx.gfx.drawable_size().1,
             },
             sorter: given_sorter,
-            desired_fps,
+            target_fps: desired_fps,
         };
         Ok(s)
     }
@@ -65,7 +68,9 @@ impl GameState {
 
 impl event::EventHandler<ggez::GameError> for GameState {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
-        while ctx.time.check_update_time(self.desired_fps) {
+        // Only draw after timeout for fps
+        while ctx.time.check_update_time(self.target_fps) {
+            // check if we want to step in the algorithm or the final test/check
             if self.sorter.do_check() && self.sorter.is_sorted() {
                 self.sorter.check_step();
             } else if !self.sorter.do_check() && !self.sorter.is_sorted() {
@@ -85,23 +90,26 @@ impl event::EventHandler<ggez::GameError> for GameState {
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         // NOTE: Drawing starts from top left!
         let mut canvas = graphics::Canvas::from_frame(ctx, graphics::Color::BLACK);
-        canvas.set_screen_coordinates(self.screen_coords); // set custom canvas for resizing
+
+        // set custom canvas for resizing
+        canvas.set_screen_coordinates(self.screen_coords);
 
         let arr = self.sorter.get_arr();
+
         // draw each mesh with the coordinates being the adjusted x coordinates and the width of
         // the default resolution, which gets scaled, when resizing
         for obj in &mut *arr {
             canvas.draw(&obj.mesh, Vec2::new(obj.rect.x, INIT_WINDOW_SIZE.1));
         }
 
-        // Add name of sorting algorithm in top left corner
-        let text = graphics::Text::new(self.sorter.get_name());
+        // Add name of sorting algorithm and delay in ms to top left corner
+        let delay = 1000. / self.target_fps as f32;
+        let text = graphics::Text::new(format!("{}, delay: {} ms", self.sorter.get_name(), delay));
         canvas.draw(&text, Vec2::new(0., 0.));
 
         canvas.finish(ctx)?;
 
-        // Update all underlying meshes once again after drawing, since some bars stay red, even
-        // after going through them in the swap function
+        // Update all underlying meshes only after drawing
         for elem in self.sorter.get_arr().iter_mut() {
             let old_rect = elem.rect;
             (*elem).mesh = graphics::Mesh::new_rectangle(
@@ -124,43 +132,13 @@ impl event::EventHandler<ggez::GameError> for GameState {
         Ok(())
     }
 }
-use rodio::{source::SineWave, OutputStream, Sink, Source};
-
-/// Range in between which the audio beep is played
-const AUDIO_RANGE_HZ: (f32, f32) = (120., 1200.);
 
 pub fn main() -> GameResult {
     let args = CLIArgs::parse();
     // add channels for audio communcations
     let (tx, rx): (mpsc::Sender<f32>, mpsc::Receiver<f32>) = mpsc::channel();
-    // Setup rodio audio parts
-    let (_stream, handle) = OutputStream::try_default().unwrap();
-    let sink = Sink::try_new(&handle).unwrap();
 
-    let _audio_thread = thread::spawn(move || {
-        let slope = (AUDIO_RANGE_HZ.1 - AUDIO_RANGE_HZ.0) / (args.max_val);
-        // We only leave half a frame time for the sound, in microseconds.
-        // WARN: on some deviced audio might not be produced by the device drivers if one goes
-        // below 10ms per sound
-        let length_us = 500_000 / args.steps_per_second as u64;
-        loop {
-            // Receive data from the channel
-            match rx.recv_timeout(time::Duration::from_millis(50)) {
-                // match rx.recv() {
-                //Use the received data to generate the audio
-                Ok(received_data) => {
-                    // Normalize range to 100-1000 Hz
-                    let frequency = AUDIO_RANGE_HZ.0 + (slope * (received_data));
-                    let duration = time::Duration::from_micros(length_us); // Set the duration of the tone
-                    let source = SineWave::new(frequency).take_duration(duration);
-                    sink.append(source);
-                }
-                Err(_) => {
-                    // Handle timeout or errors, although we don't do anything
-                }
-            }
-        }
-    });
+    start_audio_thread(rx, args.max_val, args.steps_per_second);
 
     let (mut ctx, event_loop) = ggez::ContextBuilder::new("algo-viz-rs", "Armin Veres")
         .window_mode(

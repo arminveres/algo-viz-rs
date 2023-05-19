@@ -1,3 +1,9 @@
+use std::{sync::mpsc, thread, time};
+
+use rodio::{source::SineWave, OutputStream, Sink, Source};
+
+use crate::AUDIO_RANGE_HZ;
+
 use super::{sort_element::SortState, SortElement};
 
 /// Common step interface for sorting algorithms
@@ -21,4 +27,36 @@ pub trait Sorter {
     fn do_check(&self) -> bool;
     fn check_step(&mut self);
 }
-// TODO: (aver) add function to go through all elements and check if sorted
+
+/// Starts a separate audio thread and sets up sound output using rodio
+pub fn start_audio_thread(rx: mpsc::Receiver<f32>, max_val: f32, sps: u32) {
+    thread::spawn(move || {
+        // Setup rodio audio parts
+        let (_stream, handle) = OutputStream::try_default().unwrap();
+        let sink = Sink::try_new(&handle).unwrap();
+        let slope = (AUDIO_RANGE_HZ.1 - AUDIO_RANGE_HZ.0) / (max_val);
+        // We only leave half a frame time for the sound, in microseconds.
+        // WARN: on some deviced audio might not be produced by the device drivers if one goes
+        // below 10ms per sound
+        let length_us = 500_000 / sps as u64;
+
+        loop {
+            // Receive data from the channel, with or without timeout, haven't noticed any
+            // difference in performance yet
+            // match rx.recv() {
+            match rx.recv_timeout(time::Duration::from_millis(50)) {
+                //Use the received data to generate the audio
+                Ok(received_data) => {
+                    // Normalize range to 100-1000 Hz
+                    let frequency = AUDIO_RANGE_HZ.0 + (slope * (received_data));
+                    let duration = time::Duration::from_micros(length_us); // Set the duration of the tone
+                    let source = SineWave::new(frequency).take_duration(duration);
+                    sink.append(source);
+                }
+                Err(_) => {
+                    // Handle timeout or errors, although we don't do anything
+                }
+            }
+        }
+    });
+}
