@@ -65,11 +65,11 @@ impl GameState {
 
 impl event::EventHandler<ggez::GameError> for GameState {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
-        if self.sorter.do_check() && self.sorter.is_sorted() {
-            self.sorter.check_step();
-        } else if !self.sorter.do_check() && !self.sorter.is_sorted() {
-            // only update in given steps per second
-            while ctx.time.check_update_time(self.desired_fps) {
+        while ctx.time.check_update_time(self.desired_fps) {
+            if self.sorter.do_check() && self.sorter.is_sorted() {
+                self.sorter.check_step();
+            } else if !self.sorter.do_check() && !self.sorter.is_sorted() {
+                // only update in given steps per second
                 self.sorter.step();
             }
         }
@@ -127,7 +127,7 @@ impl event::EventHandler<ggez::GameError> for GameState {
 use rodio::{source::SineWave, OutputStream, Sink, Source};
 
 /// Range in between which the audio beep is played
-const AUDIO_RANGE_HZ: (f32, f32) = (100., 1000.);
+const AUDIO_RANGE_HZ: (f32, f32) = (120., 1200.);
 
 pub fn main() -> GameResult {
     let args = CLIArgs::parse();
@@ -139,22 +139,24 @@ pub fn main() -> GameResult {
 
     let _audio_thread = thread::spawn(move || {
         let slope = (AUDIO_RANGE_HZ.1 - AUDIO_RANGE_HZ.0) / (args.max_val);
+        // We only leave half a frame time for the sound, in microseconds.
+        // WARN: on some deviced audio might not be produced by the device drivers if one goes
+        // below 10ms per sound
+        let length_us = 500_000 / args.steps_per_second as u64;
         loop {
             // Receive data from the channel
-            // match rx.recv_timeout(time::Duration::from_millis(50)) {
-            match rx.recv() {
+            match rx.recv_timeout(time::Duration::from_millis(50)) {
+                // match rx.recv() {
                 //Use the received data to generate the audio
                 Ok(received_data) => {
                     // Normalize range to 100-1000 Hz
                     let frequency = AUDIO_RANGE_HZ.0 + (slope * (received_data));
-                    let duration = time::Duration::from_millis(50); // Set the duration of the tone
+                    let duration = time::Duration::from_micros(length_us); // Set the duration of the tone
                     let source = SineWave::new(frequency).take_duration(duration);
-
                     sink.append(source);
-                    sink.sleep_until_end();
                 }
                 Err(_) => {
-                    //Handle timeout or errors
+                    // Handle timeout or errors, although we don't do anything
                 }
             }
         }
@@ -184,9 +186,7 @@ pub fn main() -> GameResult {
             tx,
         )),
     };
-
     let state = GameState::new(sorter, &mut ctx, args.steps_per_second)?;
-
-    event::run(ctx, event_loop, state);
-    _audio_thread.join().unwrap()
+    event::run(ctx, event_loop, state)
+    // _audio_thread.join().unwrap() // unreachable since even::run handles game
 }
