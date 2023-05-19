@@ -1,5 +1,7 @@
 # Sorting Algorithm Visualizer and Auralizer
 
+> **Note**: Pull requests are welcome!
+
 ## Usage
 
 ```
