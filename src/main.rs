@@ -1,8 +1,14 @@
 use clap::{Parser, ValueEnum};
-use ggez::glam::Vec2;
-use ggez::graphics::{self, Rect};
-use ggez::{event, Context, GameResult};
-use sorting::{BubbleSort, InsertionSort, SelectionSort, Sorter, INIT_WINDOW_SIZE};
+use ggez::{
+    event,
+    glam::Vec2,
+    graphics::{self, Rect},
+    Context, GameResult,
+};
+use sorting::{
+    start_audio_thread, BubbleSort, InsertionSort, SelectionSort, Sorter, INIT_WINDOW_SIZE,
+};
+use std::sync::mpsc;
 
 #[derive(Clone, ValueEnum)]
 enum SortingAlgorithms {
@@ -31,8 +37,12 @@ struct GameState {
     frames: usize,
     window_settings: WindowSettings,
     screen_coords: Rect,
+    /// Alias to steps per second
+    target_fps: u32,
+    /// Dynamically dispatched struct that implements the sorter trait.
+    ///
+    /// This contains our individual algorithms
     sorter: Box<dyn Sorter>,
-    desired_fps: u32,
 }
 
 impl GameState {
@@ -53,19 +63,22 @@ impl GameState {
                 h: ctx.gfx.drawable_size().1,
             },
             sorter: given_sorter,
-            desired_fps,
+            target_fps: desired_fps,
         };
         Ok(s)
     }
 }
 
+// Implement GGEZ specific trains for our gamestate
 impl event::EventHandler<ggez::GameError> for GameState {
     fn update(&mut self, ctx: &mut Context) -> GameResult {
-        if self.sorter.do_check() && self.sorter.is_sorted() {
-            self.sorter.check_step();
-        } else if !self.sorter.do_check() && !self.sorter.is_sorted() {
-            // only update in given steps per second
-            while ctx.time.check_update_time(self.desired_fps) {
+        // Only draw after timeout for fps
+        while ctx.time.check_update_time(self.target_fps) {
+            // check if we want to step in the algorithm or the final test/check
+            if self.sorter.do_check() && self.sorter.is_sorted() {
+                self.sorter.check_step();
+            } else if !self.sorter.do_check() && !self.sorter.is_sorted() {
+                // only update in given steps per second
                 self.sorter.step();
             }
         }
@@ -81,23 +94,26 @@ impl event::EventHandler<ggez::GameError> for GameState {
     fn draw(&mut self, ctx: &mut Context) -> GameResult {
         // NOTE: Drawing starts from top left!
         let mut canvas = graphics::Canvas::from_frame(ctx, graphics::Color::BLACK);
-        canvas.set_screen_coordinates(self.screen_coords); // set custom canvas for resizing
+
+        // set custom canvas for resizing
+        canvas.set_screen_coordinates(self.screen_coords);
 
         let arr = self.sorter.get_arr();
+
         // draw each mesh with the coordinates being the adjusted x coordinates and the width of
         // the default resolution, which gets scaled, when resizing
         for obj in &mut *arr {
             canvas.draw(&obj.mesh, Vec2::new(obj.rect.x, INIT_WINDOW_SIZE.1));
         }
 
-        // Add name of sorting algorithm in top left corner
-        let text = graphics::Text::new(self.sorter.get_name());
+        // Add name of sorting algorithm and delay in ms to top left corner
+        let delay = 1000. / self.target_fps as f32;
+        let text = graphics::Text::new(format!("{}, delay: {} ms", self.sorter.get_name(), delay));
         canvas.draw(&text, Vec2::new(0., 0.));
 
         canvas.finish(ctx)?;
 
-        // Update all underlying meshes once again after drawing, since some bars stay red, even
-        // after going through them in the swap function
+        // Update all underlying meshes only after drawing
         for elem in self.sorter.get_arr().iter_mut() {
             let old_rect = elem.rect;
             (*elem).mesh = graphics::Mesh::new_rectangle(
@@ -123,6 +139,10 @@ impl event::EventHandler<ggez::GameError> for GameState {
 
 pub fn main() -> GameResult {
     let args = CLIArgs::parse();
+    // add channels for audio communcations
+    let (tx, rx): (mpsc::Sender<f32>, mpsc::Receiver<f32>) = mpsc::channel();
+
+    start_audio_thread(rx, args.max_val, args.steps_per_second);
 
     let (mut ctx, event_loop) = ggez::ContextBuilder::new("algo-viz-rs", "Armin Veres")
         .window_mode(
@@ -133,17 +153,22 @@ pub fn main() -> GameResult {
 
     let sorter: Box<dyn Sorter> = match args.sorting_algo {
         SortingAlgorithms::Bubblesort => {
-            Box::new(BubbleSort::new(&mut ctx, args.max_val, args.no_rects))
+            Box::new(BubbleSort::new(&mut ctx, args.max_val, args.no_rects, tx))
         }
-        SortingAlgorithms::Insertionsort => {
-            Box::new(InsertionSort::new(&mut ctx, args.max_val, args.no_rects))
-        }
-        SortingAlgorithms::Selectionsort => {
-            Box::new(SelectionSort::new(&mut ctx, args.max_val, args.no_rects))
-        }
+        SortingAlgorithms::Insertionsort => Box::new(InsertionSort::new(
+            &mut ctx,
+            args.max_val,
+            args.no_rects,
+            tx,
+        )),
+        SortingAlgorithms::Selectionsort => Box::new(SelectionSort::new(
+            &mut ctx,
+            args.max_val,
+            args.no_rects,
+            tx,
+        )),
     };
-
     let state = GameState::new(sorter, &mut ctx, args.steps_per_second)?;
-
     event::run(ctx, event_loop, state)
+    // _audio_thread.join().unwrap() // unreachable since even::run handles game
 }

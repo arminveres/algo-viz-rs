@@ -33,8 +33,7 @@ pub struct SortElement {
     /// Part that will get sorted
     /// NOTE: use zero coordinates, otherwise the position will get added to the mesh as well
     pub rect: graphics::Rect,
-    // FIXME: implement color change, currently it looks like we would have to replace the mesh with a
-    // new one, that has the updated color.
+    /// Enums that holds current sort state, also used to draw the correct color
     pub sort_state: SortState,
 }
 
@@ -77,6 +76,7 @@ impl SortElement {
         })
     }
 
+    /// Returns the value that will be used in the sorting comparisons
     pub fn get_sort_value(&self) -> f32 {
         -self.rect.h
     }

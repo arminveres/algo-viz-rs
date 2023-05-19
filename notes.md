@@ -1,4 +1,0 @@
-- could use [relm4](https://github.com/Relm4/Relm4) as gtk
-- [piston](https://github.com/PistonDevelopers/piston)
-- [ggez](https://github.com/ggez/ggez)
-- algos from [here](https://github.com/TheAlgorithms/Rust)
