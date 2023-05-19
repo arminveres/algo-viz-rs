@@ -15,6 +15,8 @@ Options:
   -h, --help                                 Print help
 ```
 
+![2023-05-19_15-40](https://github.com/arminveres/algo-viz-rs/assets/45210978/e45f5642-cfeb-4d6a-9954-03494d35b7f9)
+
 ## Limitations
 
 ### Audio/Auralization
