@@ -27,6 +27,12 @@ asynchronous and above 100 it disappears completely. This is because the sine wa
 duration long enough for the audio device/drive on the computer to pick up and therefore they are not able to output
 them.
 
+### Platform
+
+Currently only tested on Fedora 38 on X11.
+
+> **Warning**: Wayland fails to load and work!
+
 ## Algorithms
 
 Currently the following 3 algorithms were implemented:
