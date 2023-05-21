@@ -2,6 +2,12 @@
 
 > **Note**: Pull requests are welcome!
 
+## Build
+
+`cargo build --release && ./target/release/algo-viz-rs [--options]`
+or
+`cargo run --release -- [--options]`
+
 ## Usage
 
 ```
@@ -55,6 +61,7 @@ Currently the following 3 algorithms were implemented:
 - [ ] Add further algorithms
 - [ ] Add cli option for audio range in Hz
 - [ ] Once ggez 0.9.0 stable drops, update to it
+- [ ] Add GUI wrapping rendering and adding dropdowns for CLI options
 
 ## Acknowledgments
 
