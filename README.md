@@ -58,9 +58,12 @@ Currently the following 3 algorithms were implemented:
 ## TODO
 
 - [ ] Add further algorithms
-- [ ] Add cli option for audio range in Hz
+  - Mergesort, Quicksort, ...
+- [ ] Spacing between bars?
 - [ ] Once ggez 0.9.0 stable drops, update to it
-- [ ] Add GUI wrapping rendering and adding dropdowns for CLI options
+- [ ] Add GUI wrapping rendering
+   - [ ] dropdowns for CLI options
+- [ ] Add cli option for audio range in Hz
 
 ## Acknowledgments
 
