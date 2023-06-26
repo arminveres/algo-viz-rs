@@ -36,7 +36,7 @@ them.
 
 ### Platform
 
-Currently only tested on Fedora 38 on X11.
+Currently tested on Fedora 38 on X11, MacOS 12.
 
 > **Warning**: Wayland fails to load and work!
 
@@ -52,18 +52,17 @@ Currently the following 3 algorithms were implemented:
 
 - Rust Compiler, >=1.67
 
-> **Warning**: ggez, the graphics library, requires the developmental version `0.9.0-rc0`, which works for newer compilers.
-> For the rust toolchain below `1.67` version `0.8.1` works.
+> **Warning**: For the rust toolchain below `1.67` version `0.8.1` works.
 
 ## TODO
 
 - [ ] Add further algorithms
   - Mergesort, Quicksort, ...
 - [ ] Spacing between bars?
-- [ ] Once ggez 0.9.0 stable drops, update to it
 - [ ] Add GUI wrapping rendering
    - [ ] dropdowns for CLI options
 - [ ] Add cli option for audio range in Hz
+- [ ] Improve sound at higher SPS, e.g., low-pass filter
 
 ## Acknowledgments
 
