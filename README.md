@@ -54,6 +54,8 @@ Currently the following 3 algorithms were implemented:
 
 > **Warning**: For the rust toolchain below `1.67` version `0.8.1` works.
 
+- You may need the `systemd-devel` package on Fedora based systems, in order for ggez to compile
+
 ## TODO
 
 - [ ] Add further algorithms
