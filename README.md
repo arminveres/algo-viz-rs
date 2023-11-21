@@ -1,6 +1,7 @@
 # Sorting Algorithm Visualizer and Auralizer
 
-> **Note**: Pull requests are welcome!
+> [!NOTE]
+> Pull requests are welcome!
 
 ## Build
 
@@ -22,6 +23,7 @@ Options:
   -s, --steps-per-second <STEPS_PER_SECOND>  [default: 10]
   -h, --help                                 Print help
 ```
+
 ![image](https://github.com/arminveres/algo-viz-rs/assets/45210978/a88ca8ba-7d77-4ddf-8865-c054d64c0560)
 
 ## Limitations
@@ -38,7 +40,8 @@ them.
 
 Currently tested on Fedora 38 on X11, MacOS 12.
 
-> **Warning**: Wayland fails to load and work!
+> [!WARN]
+> Wayland fails to load and work!
 
 ## Algorithms
 
@@ -52,7 +55,8 @@ Currently the following 3 algorithms were implemented:
 
 - Rust Compiler, >=1.67
 
-> **Warning**: For the rust toolchain below `1.67` version `0.8.1` works.
+> [!WARN]
+> For the rust toolchain below `1.67` version `0.8.1` works.
 
 - You may need the `systemd-devel` package on Fedora based systems, in order for ggez to compile
 
@@ -62,7 +66,7 @@ Currently the following 3 algorithms were implemented:
   - Mergesort, Quicksort, ...
 - [ ] Spacing between bars?
 - [ ] Add GUI wrapping rendering
-   - [ ] dropdowns for CLI options
+  - [ ] dropdowns for CLI options
 - [ ] Add cli option for audio range in Hz
 - [ ] Improve sound at higher SPS, e.g., low-pass filter
 
