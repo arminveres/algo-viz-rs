@@ -40,7 +40,7 @@ them.
 
 Currently tested on Fedora 38 on X11, MacOS 12.
 
-> [!WARN]
+> [!WARNING]
 > Wayland fails to load and work!
 
 ## Algorithms
@@ -55,7 +55,7 @@ Currently the following 3 algorithms were implemented:
 
 - Rust Compiler, >=1.67
 
-> [!WARN]
+> [!WARNING]
 > For the rust toolchain below `1.67` version `0.8.1` works.
 
 - You may need the `systemd-devel` package on Fedora based systems, in order for ggez to compile
